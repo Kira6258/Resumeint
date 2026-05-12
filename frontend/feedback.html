@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Feedback — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="feedback-shell">
+        <!-- Left: Review -->
+        <div class="feedback-main-panel">
+            <div class="fb-crumb">
+                <a href="dashboard.html" class="fb-crumb-link">Dashboard</a>
+                <span class="fb-crumb-sep">/</span>
+                <span class="fb-crumb-current">AI Review</span>
+            </div>
+            <div class="fb-header">
+                <div>
+                    <div class="fb-pills">
+                        <span id="week-badge" class="fb-week-pill">Week —</span>
+                        <span id="status-badge" class="fb-status-pill pending">Pending</span>
+                    </div>
+                    <h1 class="fb-title">Performance<br>Analysis</h1>
+                    <p id="course-label" class="fb-project-label">Project Implementation Review</p>
+                </div>
+                <span id="date-label" class="fb-date-tag">—</span>
+            </div>
+            <!-- New Score Hero -->
+            <div id="score-hero-container" class="score-hero hidden">
+                <div class="score-ring-wrap">
+                    <svg class="score-ring-svg" viewBox="0 0 100 100">
+                        <circle class="score-ring-bg" cx="50" cy="50" r="45"></circle>
+                        <circle id="score-ring-fill" class="score-ring-fill" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="282.7"></circle>
+                    </svg>
+                    <div id="score-number" class="score-ring-number">0.0</div>
+                    <div class="score-ring-label">Score</div>
+                </div>
+                <div class="score-details">
+                    <div id="score-verdict" class="score-verdict">Evaluating...</div>
+                    <p id="score-verdict-sub" class="score-verdict-sub">We're calculating your performance based on code quality and milestone alignment.</p>
+                </div>
+            </div>
+            <div id="status-banner" class="fb-banner">
+                <span class="fb-banner-emoji" id="banner-emoji"></span>
+                <div class="fb-banner-body">
+                    <h4 id="status-title">Status</h4>
+                    <p id="status-desc">Description</p>
+                </div>
+            </div>
+            <div class="fb-review-wrap">
+                <div class="fb-review-header">
+                    <span class="fb-review-label">Detailed Feedback</span>
+                    <div class="fb-review-divider"></div>
+                </div>
+                <div id="feedback-body" class="fb-sections-grid">
+                    <div class="fb-loading">
+                        <div class="fb-loading-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        Analyzing your implementation...
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right: Sidebar -->
+        <div class="feedback-sidebar-panel">
+            <div class="fb-sidebar-section">
+                <div class="fb-sidebar-sec-label">Submitted Code</div>
+                <div class="code-preview-block">
+                    <div class="code-preview-bar">
+                        <div class="cpb-dot cpb-dot-r"></div>
+                        <div class="cpb-dot cpb-dot-y"></div>
+                        <div class="cpb-dot cpb-dot-g"></div>
+                    </div>
+                    <pre><code id="code-preview">Loading...</code></pre>
+                </div>
+            </div>
+            <div class="fb-sidebar-section" id="github-section">
+                <div class="fb-sidebar-sec-label">Repository</div>
+                <a id="github-link" href="#" target="_blank" class="fb-github-link">
+                    <span class="fb-github-icon">⌥</span>
+                    <span class="fb-github-label">View Repository</span>
+                    <span class="fb-github-arrow">↗</span>
+                </a>
+            </div>
+            <div class="fb-sidebar-back-wrap">
+                <a onclick="window.history.back()" class="fb-back-btn" href="#">← Back to Project</a>
+            </div>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const checkinId = urlParams.get('id');
+        function updateScoreRing(score) {
+            const ring = document.getElementById('score-ring-fill');
+            const num = document.getElementById('score-number');
+            const circumference = 2 * Math.PI * 45;
+            const offset = circumference - (score / 10) * circumference;
+            ring.style.strokeDashoffset = offset;
+            num.innerText = score.toFixed(1);
+            ring.classList.remove('score-high', 'score-mid', 'score-low');
+            if (score >= 8) ring.classList.add('score-high');
+            else if (score >= 6) ring.classList.add('score-mid');
+            else ring.classList.add('score-low');
+        }
+        function parseFeedbackSections(text) {
+            // Extract Score
+            const scoreMatch = text.match(/\[SCORE:\s*(\d+\.?\d*)\s*\/\s*10\]/);
+            const score = scoreMatch ? parseFloat(scoreMatch[1]) : 0;
+            // Extract Sections
+            const sections = {
+                verdict: text.match(/## Verdict\n([\s\S]*?)(?=\n##|$)/)?.[1]?.trim() || "",
+                nailed: text.match(/## What You Nailed\n([\s\S]*?)(?=\n##|$)/)?.[1]?.trim() || "",
+                work: text.match(/## What Needs Work\n([\s\S]*?)(?=\n##|$)/)?.[1]?.trim() || "",
+                wins: text.match(/## Quick Wins\n([\s\S]*?)(?=\n##|$)/)?.[1]?.trim() || ""
+            };
+            return { score, sections };
+        }
+        async function loadFeedback() {
+            try {
+                const res = await fetchWithAuth(`/api/checkins/${checkinId}`);
+                if (!res.ok) throw new Error("Feedback not found");
+                const data = await res.json();
+                document.getElementById('week-badge').innerText = `Week ${data.week_number}`;
+                document.getElementById('date-label').innerText = new Date(data.created_at).toLocaleDateString('en-US', {
+                    month: 'long', day: 'numeric', year: 'numeric'
+                });
+                const statusBadge = document.getElementById('status-badge');
+                const banner = document.getElementById('status-banner');
+                if (data.status === 'accepted') {
+                    statusBadge.innerText = 'Accepted';
+                    statusBadge.className = 'fb-status-pill accepted';
+                    banner.className = 'fb-banner accepted';
+                    document.getElementById('banner-emoji').innerText = '🎉';
+                    document.getElementById('status-title').innerText = 'Week Accepted!';
+                    document.getElementById('status-desc').innerText = 'Great job — you met the requirements for this milestone.';
+                } else if (data.status === 'redo') {
+                    statusBadge.innerText = 'Redo Required';
+                    statusBadge.className = 'fb-status-pill redo';
+                    banner.className = 'fb-banner redo';
+                    document.getElementById('banner-emoji').innerText = '⚠️';
+                    document.getElementById('status-title').innerText = 'Improvements Needed';
+                    document.getElementById('status-desc').innerText = 'Address the feedback below and resubmit to proceed.';
+                } else {
+                    statusBadge.innerText = 'Pending Review';
+                    statusBadge.className = 'fb-status-pill pending';
+                    banner.classList.add('hidden');
+                }
+                document.getElementById('code-preview').innerText =
+                    data.code_submitted.substring(0, 500) + (data.code_submitted.length > 500 ? '\n\n... (truncated)' : '');
+                if (data.github_link) {
+                    document.getElementById('github-link').href = data.github_link;
+                } else {
+                    document.getElementById('github-section').classList.add('hidden');
+                }
+                const contentArea = document.getElementById('feedback-body');
+                if (data.ai_feedback) {
+                    contentArea.innerHTML = renderMarkdown(data.ai_feedback);
+                    // Show Score Hero if present
+                    const scoreMatch = data.ai_feedback.match(/\[SCORE:\s*(\d+\.?\d*)\s*\/\s*10\]/);
+                    if (scoreMatch) {
+                        const score = parseFloat(scoreMatch[1]);
+                        const scoreHero = document.getElementById('score-hero-container');
+                        scoreHero.classList.remove('hidden');
+                        updateScoreRing(score);
+                        // Extract verdict
+                        const verdictMatch = data.ai_feedback.match(/## Verdict\n([\s\S]*?)(?=\n##|$)/);
+                        if (verdictMatch) {
+                            document.getElementById('score-verdict').innerText = verdictMatch[1].trim();
+                        }
+                    }
+                } else {
+                    contentArea.innerHTML = '<p class="fb-project-label">No feedback generated for this submission yet.</p>';
+                }
+            } catch (err) {
+                document.getElementById('feedback-body').innerHTML =
+                    '<p class="fb-project-label">Error loading feedback: ' + err.message + '</p>';
+            }
+        }
+        loadFeedback();
+    </script>
+    <script>
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = menu.classList.toggle('active');
+            this.textContent = isOpen ? '✕' : '☰';
+        });
+    </script>
+</body>
+</html>

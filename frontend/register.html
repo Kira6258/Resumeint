@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body class="auth-body">
+    <div class="auth-bg-glow"></div>
+    <main class="auth-main-wrap fade-up">
+        <div class="auth-card glass-card">
+            <a href="index.html" class="logo auth-logo"><img src="assets/logo.png" alt="Resumeint" style="height: 64px;"></a>
+            <h1 class="auth-headline">Join Resumeint</h1>
+            <p class="auth-sub">Start architecting your world-class portfolio today.</p>
+            <form id="register-form" class="auth-form-block">
+                <div class="form-group">
+                    <label class="form-label-v2">Full Name</label>
+                    <input type="text" id="reg-name" class="form-input" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label-v2">Email Address</label>
+                    <input type="email" id="reg-email" class="form-input" placeholder="architect@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label-v2">Secure Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="reg-password" class="form-input" placeholder="Min 8 characters" required minlength="8">
+                        <button type="button" class="password-toggle" id="toggle-reg-pass">👁️</button>
+                    </div>
+                    <div id="password-strength" style="font-size:0.7rem;margin-top:var(--space-8);color:var(--text-tertiary);">
+                        Must be at least 8 characters long.
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-glow auth-submit-btn" id="reg-submit-btn">Create My Account</button>
+            </form>
+            <div class="auth-divider">
+                <div class="divider-line"></div>
+                <span class="divider-text">OR</span>
+                <div class="divider-line"></div>
+            </div>
+            <a href="/auth/google" class="btn btn-outline google-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google">
+                Continue with Google
+            </a>
+            <div class="auth-footer-note">
+                Already an architect? <a href="login.html" class="auth-link-gold">Login Here</a>
+            </div>
+        </div>
+    </main>
+    <script src="js/app.js"></script>
+    <script>
+        // Password Toggle
+        const passInput = document.getElementById('reg-password');
+        const passToggle = document.getElementById('toggle-reg-pass');
+        const strengthHint = document.getElementById('password-strength');
+        passToggle.onclick = () => {
+            const isPass = passInput.type === 'password';
+            passInput.type = isPass ? 'text' : 'password';
+            passToggle.innerText = isPass ? '🔒' : '👁️';
+        };
+        // Real-time validation
+        passInput.addEventListener('input', () => {
+            const val = passInput.value;
+            if (val.length < 8) {
+                strengthHint.style.color = 'var(--text-tertiary)';
+                strengthHint.innerText = 'Must be at least 8 characters long.';
+            } else {
+                strengthHint.style.color = '#4CAF50';
+                strengthHint.innerText = 'Password strength acceptable ✅';
+            }
+        });
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = passInput.value;
+            if (password.length < 8) {
+                showToast("Weak Password", "Password must be at least 8 characters.", "warning");
+                return;
+            }
+            const btn = document.getElementById('reg-submit-btn');
+            setButtonLoading(btn, true, "Provisioning Profile...");
+            try {
+                const res = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('reg-name').value,
+                        email: document.getElementById('reg-email').value,
+                        password: password
+                    })
+                });
+                if (res.ok) {
+                    showToast("Account Created", "Welcome to Resumeint! Please login.", "success");
+                    setTimeout(() => window.location.href = 'login.html', 1500);
+                } else {
+                    const err = await res.json();
+                    showToast("Error", err.detail || "Email may already be registered.", "error");
+                }
+            } catch (err) {
+                showToast("Error", "Check your connection.", "error");
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        });
+    </script>
+    <style>
+    .auth-body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-primary);
+        background-image: radial-gradient(at 50% 0%, rgba(212,162,78,0.06) 0, transparent 60%);
+        padding: var(--space-24);
+    }
+    .auth-bg-glow {
+        position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+        width: 600px; height: 300px;
+        background: radial-gradient(circle, rgba(212,162,78,0.07) 0, transparent 70%);
+        pointer-events: none; z-index: 0;
+    }
+    .auth-main-wrap { width: 100%; max-width: 460px; position: relative; z-index: 1; }
+    .auth-card { padding: var(--space-48); text-align: center; }
+    .auth-logo { justify-content: center; margin-bottom: var(--space-32); }
+    .auth-headline {
+        font-family: var(--font-display); font-size: 1.6rem; font-weight: 800;
+        letter-spacing: -0.03em; margin-bottom: var(--space-8);
+    }
+    .auth-sub { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: var(--space-32); }
+    .auth-form-block { text-align: left; display: flex; flex-direction: column; gap: var(--space-20); margin-bottom: var(--space-24); }
+    .auth-submit-btn { width: 100%; height: 52px; font-size: 1rem; }
+    .auth-footer-note { margin-top: var(--space-32); font-size: 0.875rem; color: var(--text-secondary); }
+    .auth-link-gold { color: var(--accent-gold); font-weight: 700; }
+    .auth-link-gold:hover { color: var(--text-primary); }
+    .auth-divider { display: flex; align-items: center; gap: var(--space-16); margin: var(--space-24) 0; }
+    .divider-line { flex: 1; height: 1px; background: var(--border-muted); }
+    .divider-text { font-size: 0.7rem; font-weight: 800; color: var(--text-tertiary); letter-spacing: 0.08em; }
+    </style>
+</body>
+</html>

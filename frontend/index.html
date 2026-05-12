@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumeint — The Architectural Standard for Learning</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link hidden" id="nav-dashboard">Dashboard</a>
+                    <a href="upload.html" class="nav-link hidden" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link hidden">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger hidden">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <header class="hero-section animate-fade-in">
+            <div class="hero-glow"></div>
+            <h1 class="hero-headline">
+                The <span class="gradient-text">Architectural</span><br>Standard for Learning.
+            </h1>
+            <p class="hero-description">
+                Convert any college syllabus into a production-ready portfolio.
+                Professional roadmaps, MySQL architectures, and automated code reviews.
+            </p>
+            <div class="hero-actions">
+                <a href="register.html" class="btn btn-primary btn-large btn-glow" id="hero-cta">Start Building Free</a>
+                <a href="#features" class="btn btn-outline btn-large">View Capabilities</a>
+            </div>
+        </header>
+        <section id="features" class="max-width-container features-section animate-fade-in stagger-1">
+            <div style="text-align:center;margin-bottom:var(--space-48);">
+                <h2 class="section-title">The Architect's Toolkit</h2>
+                <p style="color:var(--text-secondary);max-width:520px;margin:0 auto;">Everything you need to transform
+                    coursework into production-grade portfolio projects.</p>
+            </div>
+            <div class="features-grid">
+                <div class="bento-card">
+                    <div class="feature-icon">📂</div>
+                    <h3>Syllabus-to-Schema</h3>
+                    <p class="instruction-desc">AI extracts core competencies and generates a production-ready MySQL
+                        architecture for your project.</p>
+                </div>
+                <div class="bento-card">
+                    <div class="feature-icon">📋</div>
+                    <h3>Interactive Roadmap</h3>
+                    <p class="instruction-desc">A step-by-step guidance system designed to move you from planning to
+                        deployment with professional rigor.</p>
+                </div>
+                <div class="bento-card">
+                    <div class="feature-icon">✨</div>
+                    <h3>AI Code Reviews</h3>
+                    <p class="instruction-desc">Submit your code weekly and get automated, constructive feedback to keep
+                        your architecture on track.</p>
+                </div>
+                <div class="bento-card">
+                    <div class="feature-icon">🐙</div>
+                    <h3>GitHub Sync</h3>
+                    <p class="instruction-desc">Push your generated project structure and README directly to GitHub with
+                        a single professional commit.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer-section animate-fade-in stagger-2">
+        <div class="max-width-container footer-content">
+            <div class="footer-brand">
+                <a href="index.html" class="logo"><img src="assets/logo.png" alt="Resumeint"
+                        style="height: 32px; filter: drop-shadow(0 0 8px rgba(212,162,78,0.2));"></a>
+                <p>Architecting the next generation of world-class engineers through project-based mastery.</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <a href="pricing.html">Pricing</a>
+                    <a href="dashboard.html">Dashboard</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="terms.html">Terms of Service</a>
+                    <a href="privacy.html">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Resumeint. All rights reserved.</p>
+        </div>
+    </footer>
+    <script src="js/app.js"></script>
+    <script>
+        document.getElementById('mobile-toggle').addEventListener('click', function () {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = menu.classList.toggle('active');
+            this.textContent = isOpen ? '✕' : '☰';
+        });
+    </script>
+</body>
+
+</html>

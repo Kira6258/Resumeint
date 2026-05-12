@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roadmap —  Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main id="project-container" class="max-width-container" style="padding-top: var(--space-80);">
+        <!-- Content dynamically injected -->
+    </main>
+    <script src="js/app.js"></script>
+    <script>
+        let projectData = null;
+        async function loadProject() {
+            const container = document.getElementById('project-container');
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:50vh; gap:24px;">
+                    <div style="width:40px; height:40px; border:3px solid var(--border-muted); border-top-color:var(--accent-gold); border-radius:50%; animation:spin 1s linear infinite;"></div>
+                    <p style="color:var(--text-secondary); font-family:var(--font-display);">Decoding Architecture...</p>
+                </div>
+            `;
+
+            try {
+                const id = new URLSearchParams(window.location.search).get('id');
+                if (!id) throw new Error("No project ID found");
+
+                const res = await fetchWithAuth(`/api/projects/${id}`);
+                if (!res.ok) throw new Error("Failed to fetch project");
+
+                projectData = await res.json();
+                renderProject();
+            } catch (err) {
+                console.error("Load Project Error:", err);
+                container.innerHTML = `
+                    <div style="text-align:center; padding:var(--space-80) var(--space-32);">
+                        <div style="font-size:3rem; margin-bottom:24px;">🚧</div>
+                        <h2 style="font-family:var(--font-display); margin-bottom:12px;">Roadmap Unreachable</h2>
+                        <p style="color:var(--text-secondary); margin-bottom:32px;">${err.message || "We couldn't retrieve your architecture blueprint."}</p>
+                        <a href="dashboard.html" class="btn btn-outline">Back to Dashboard</a>
+                    </div>
+                `;
+                showToast("Error", "Could not load roadmap.", "error");
+            }
+        }
+        function renderProject() {
+            const p = projectData;
+            const container = document.getElementById('project-container');
+            
+            // Safety: Handle missing or invalid roadmap data
+            const roadmap = p.roadmap_data || [];
+            if (!Array.isArray(roadmap) || roadmap.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:var(--space-80) var(--space-32);">
+                        <div style="font-size:3rem; margin-bottom:24px;">🧪</div>
+                        <h2 style="font-family:var(--font-display); margin-bottom:12px;">Empty Architecture</h2>
+                        <p style="color:var(--text-secondary); margin-bottom:32px;">This project doesn't have a roadmap yet. Try regenerating it.</p>
+                        <a href="upload.html" class="btn btn-primary">Create New Project</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const progress = p.milestone_progress || {};
+            container.innerHTML = `
+                <header class="fade-up" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--space-64);">
+                    <div>
+                        <div class="sticker-badge" style="margin-bottom: var(--space-16);">${p.course_name}</div>
+                        <h1 style="font-size: 2.5rem; font-family: var(--font-display); font-weight: 800;">${p.title}</h1>
+                        <p style="color: var(--text-secondary); margin-top: 8px;">Architecting the next phase of your engineering portfolio.</p>
+                    </div>
+                    <div style="display: flex; gap: var(--space-16);">
+                        <a href="checkin.html?id=${p.id}" class="btn btn-primary">📝 Weekly Check-in</a>
+                        <button onclick="syncGitHub()" class="btn btn-outline">🐙 Sync GitHub</button>
+                    </div>
+                </header>
+                <div style="display: grid; grid-template-columns: 1fr 340px; gap: var(--space-48);" class="fade-up stagger-1">
+                    <div class="roadmap-main">
+                        <h2 style="font-size: 1.25rem; font-family: var(--font-display); margin-bottom: var(--space-32); display: flex; align-items: center; gap: 16px;">
+                            📋 Implementation Pipeline
+                            <div style="flex-grow: 1; height: 1px; background: var(--border-default);"></div>
+                        </h2>
+                        ${roadmap.map(w => `
+                            <div class="bento-card fade-up" style="margin-bottom: var(--space-32); padding: var(--space-40); transition-delay: ${w.week * 0.1}s">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-24);">
+                                    <div>
+                                        <div style="font-weight: 800; color: var(--accent-gold); font-size: 0.7rem; margin-bottom: 4px; letter-spacing: 0.1em;">WEEK ${w.week}</div>
+                                        <h3 style="font-size: 1.4rem; font-family: var(--font-display);">${w.goal}</h3>
+                                    </div>
+                                    <span class="sticker-badge" style="background: var(--bg-tertiary); margin: 0;">${(progress[String(w.week)] || []).length}/${(w.milestones || []).length} COMPLETE</span>
+                                </div>
+                                <div style="display: grid; gap: var(--space-12);">
+                                    ${(w.milestones || []).map((m, i) => {
+                                        const isDone = (progress[String(w.week)] || []).includes(i);
+                                        return `
+                                            <div class="card" 
+                                                 style="padding: 16px 20px; border-radius: var(--radius-md); background: ${isDone ? 'rgba(212, 162, 78, 0.05)' : 'var(--bg-tertiary)'}; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: var(--transition-fast);"
+                                                 onclick="toggleMilestone(${w.week}, ${i}, ${!isDone})">
+                                                <div style="width: 20px; height: 20px; border: 2px solid ${isDone ? 'var(--accent-gold)' : 'var(--border-default)'}; border-radius: 6px; background: ${isDone ? 'var(--accent-gold)' : 'transparent'}; display: flex; align-items: center; justify-content: center;">
+                                                    ${isDone ? '<span style="color: #000; font-size: 12px; font-weight: 900;">✅</span>' : ''}
+                                                </div>
+                                                <span style="font-size: 0.95rem; color: ${isDone ? 'var(--text-tertiary)' : 'var(--text-primary)'}; ${isDone ? 'text-decoration: line-through;' : ''}">${formatText(m)}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                                <div style="margin-top: var(--space-32); padding: 20px; background: rgba(212, 162, 78, 0.05); border-radius: var(--radius-lg); border: 1px solid rgba(212, 162, 78, 0.1);">
+                                    <div style="font-weight: 800; font-size: 0.7rem; color: var(--accent-gold); margin-bottom: 8px; text-transform: uppercase;">📦 DELIVERABLE</div>
+                                    <p style="margin: 0; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">${formatText(w.deliverable)}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="roadmap-sidebar stagger-2">
+                        <div class="bento-card fade-up" style="margin-bottom: var(--space-24); padding: var(--space-24);">
+                            <h4 style="font-family: var(--font-display); margin-bottom: var(--space-16); font-size: 1rem;">🗺️ System Architecture</h4>
+                            <pre style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); background: #000; padding: 16px; border-radius: 12px; border: 1px solid var(--border-muted); overflow-x: auto;">${JSON.stringify(p.repo_structure_data || {}, null, 2)}</pre>
+                        </div>
+                        <div class="bento-card fade-up" style="padding: var(--space-24);">
+                            <h4 style="font-family: var(--font-display); margin-bottom: var(--space-16); font-size: 1rem;">🧠 AI Mentor Tips</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">Remember to follow semantic commit messages when syncing to GitHub. Use <code style="color: var(--accent-gold);">feat:</code> for milestones and <code style="color: var(--accent-gold);">docs:</code> for README updates.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // CRITICAL: Initialize animations for newly injected elements
+            if (typeof initAnimations === 'function') {
+                initAnimations();
+            }
+        }
+        async function toggleMilestone(week, idx, done) {
+            try {
+                await fetchWithAuth(`/api/projects/${projectData.id}/milestones`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ week_number: week, milestone_index: idx, completed: done })
+                });
+                loadProject();
+            } catch (err) {
+                showToast("Error", "Failed to update milestone.", "error");
+            }
+        }
+        async function syncGitHub() {
+            showToast("GitHub Sync", "Initializing repository...", "info");
+            try {
+                const res = await fetchWithAuth(`/api/projects/${projectData.id}/sync-github`, { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast("Success", "Repository synchronized.", "success");
+                    window.open(data.repo_url, '_blank');
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (err) {
+                showToast("Error", "Sync failed. Check GitHub integration.", "error");
+            }
+        }
+        loadProject();
+    </script>
+    <script>
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = menu.classList.toggle('active');
+            this.textContent = isOpen ? '✕' : '☰';
+        });
+    </script>
+    <style>
+    #project-container { padding-top: var(--space-64); }
+    @media (max-width: 768px) {
+        #project-container > div[style*="grid-template-columns"] { display: block !important; }
+        #project-container > div > div:last-child { margin-top: var(--space-32); }
+        #project-container header { flex-direction: column !important; align-items: flex-start !important; gap: var(--space-20) !important; }
+    }
+    </style>
+</body>
+</html>

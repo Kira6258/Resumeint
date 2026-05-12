@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+
+# Environment Variables (Keep your API keys separate and safe!)
+.env
+backend/.env
+
+# Local database (if any)
+*.sqlite3
+*.db
+
+# OS
+.DS_Store
+Thumbs.db

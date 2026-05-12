@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="page-container" style="max-width:1100px;">
+        <header class="animate-fade-in" style="margin-bottom:var(--space-48);">
+            <div class="sticker-badge" style="margin-bottom:var(--space-12);">Settings</div>
+            <h1 style="font-family:var(--font-display);font-size:clamp(1.75rem,4vw,2.25rem);font-weight:800;letter-spacing:-0.03em;margin-bottom:var(--space-8);">Account Settings</h1>
+            <p style="color:var(--text-secondary);margin:0;">Manage your engineering identity and subscription.</p>
+        </header>
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:var(--space-32);" class="profile-grid animate-fade-in stagger-1">
+            <div class="profile-main">
+                <div class="section-card" style="padding:var(--space-40);">
+                    <div style="display:flex;align-items:center;gap:var(--space-12);margin-bottom:var(--space-32);padding-bottom:var(--space-20);border-bottom:1px solid var(--border-muted);">
+                        <span style="font-size:1.25rem;">👤</span>
+                        <h3 style="margin:0;font-family:var(--font-display);">Personal Information</h3>
+                    </div>
+                    <form id="profile-form">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-24);margin-bottom:var(--space-24);">
+                            <div class="form-group">
+                                <label class="form-label-v2">Full Name</label>
+                                <input type="text" id="profile-name" class="form-input-v2" placeholder="Your Name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label-v2">Email Address</label>
+                                <input type="email" id="profile-email" class="form-input-v2" disabled>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom:var(--space-32);">
+                            <label class="form-label-v2">Engineering Bio</label>
+                            <textarea id="profile-bio" class="form-input-v2 textarea-v2" placeholder="Tell us about your technical focus and engineering goals..."></textarea>
+                        </div>
+                        <!-- Professional Links -->
+                        <div style="margin-top:var(--space-48);margin-bottom:var(--space-32);">
+                            <div style="display:flex;align-items:center;gap:var(--space-12);margin-bottom:var(--space-24);padding-bottom:var(--space-16);border-bottom:1px solid var(--border-muted);">
+                                <span style="font-size:1.2rem;">🔗</span>
+                                <h3 style="margin:0;font-family:var(--font-display);font-size:1.1rem;">Professional Links</h3>
+                            </div>
+                            <div class="social-links-grid">
+                                <div class="form-group">
+                                    <label class="form-label-v2">GitHub Profile</label>
+                                    <div class="social-input-wrapper">
+                                        <span class="social-icon-prefix">🐙</span>
+                                        <input type="url" id="link-github" class="form-input-v2" placeholder="https://github.com/username">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label-v2">LinkedIn Profile</label>
+                                    <div class="social-input-wrapper">
+                                        <span class="social-icon-prefix">💼</span>
+                                        <input type="url" id="link-linkedin" class="form-input-v2" placeholder="https://linkedin.com/in/username">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label-v2">LeetCode Profile</label>
+                                    <div class="social-input-wrapper">
+                                        <span class="social-icon-prefix">⚔️</span>
+                                        <input type="url" id="link-leetcode" class="form-input-v2" placeholder="https://leetcode.com/username">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-glow" style="padding:14px 40px;">Save Changes</button>
+                    </form>
+                </div>
+                <!-- Danger Zone -->
+                <div class="danger-zone animate-fade-in stagger-2">
+                    <div class="danger-zone-header">
+                        <span>⚠️</span>
+                        <h3>Danger Zone</h3>
+                    </div>
+                    <div class="danger-zone-content">
+                        <div class="danger-text">
+                            <h4>Delete Account</h4>
+                            <p>Once you delete your account, there is no going back. Please be certain.</p>
+                        </div>
+                        <button id="delete-account-btn" class="btn btn-danger">Delete Account</button>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-sidebar">
+                <div class="section-card" style="text-align:center;padding:var(--space-40) var(--space-32);margin-bottom:var(--space-24);">
+                    <div id="avatar-circle" class="profile-avatar-xl" style="margin:0 auto var(--space-20);">U</div>
+                    <h4 id="sidebar-name" style="margin-bottom:var(--space-8);font-family:var(--font-display);font-size:1.1rem;">Architect</h4>
+                    <p id="sidebar-email" style="font-size:0.875rem;color:var(--text-tertiary);margin:0;">email@example.com</p>
+                </div>
+                <div class="section-card" style="padding:var(--space-24);border-color:var(--accent-gold);background:rgba(212,162,78,0.02);">
+                    <div style="font-weight:800;font-size:0.7rem;color:var(--accent-gold);margin-bottom:var(--space-12);text-transform:uppercase;letter-spacing:0.08em;">Subscription</div>
+                    <div id="tier-badge-v2" class="sticker-badge gold" style="margin-bottom:var(--space-16);">FREE ARCHITECT</div>
+                    <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.6;margin-bottom:var(--space-20);">Upgrade to Pro to unlock unlimited architectures and deep AI reviews.</p>
+                    <a href="pricing.html" class="btn btn-outline" style="width:100%;justify-content:center;border-color:var(--accent-gold);color:var(--accent-gold);">View Plans ↗</a>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h2 class="modal-title">Delete Account?</h2>
+            <p class="modal-desc">
+                This action is permanent and will delete all your projects, architectures, and progress. 
+                A confirmation email will be sent to your inbox to finalize this process.
+            </p>
+            <div class="modal-actions">
+                <button id="cancel-delete" class="btn btn-outline">Cancel</button>
+                <button id="confirm-delete" class="btn btn-danger">Yes, Send Email</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+    <script>
+        // Modal Logic
+        const deleteBtn = document.getElementById('delete-account-btn');
+        const deleteModal = document.getElementById('delete-modal');
+        const cancelDelete = document.getElementById('cancel-delete');
+        const confirmDelete = document.getElementById('confirm-delete');
+        deleteBtn.onclick = () => deleteModal.classList.add('active');
+        cancelDelete.onclick = () => deleteModal.classList.remove('active');
+        confirmDelete.onclick = async () => {
+            confirmDelete.disabled = true;
+            confirmDelete.innerText = "Sending...";
+            try {
+                // In a real app, this would hit /api/account/delete-request
+                showToast("Request Sent", "A confirmation link has been sent to your email.", "success");
+                setTimeout(() => deleteModal.classList.remove('active'), 2000);
+            } catch (err) {
+                showToast("Error", "Could not process request.", "error");
+            } finally {
+                confirmDelete.disabled = false;
+                confirmDelete.innerText = "Yes, Send Email";
+            }
+        };
+        async function loadProfile() {
+            try {
+                const res = await fetchWithAuth('/api/me');
+                const data = await res.json();
+                document.getElementById('profile-name').value = data.name || '';
+                document.getElementById('profile-email').value = data.email || '';
+                document.getElementById('profile-bio').value = data.bio || '';
+                
+                // Load flat fields from backend
+                document.getElementById('link-github').value = data.github_url || '';
+                document.getElementById('link-linkedin').value = data.linkedin_url || '';
+                document.getElementById('link-leetcode').value = data.leetcode_url || '';
+                
+                document.getElementById('sidebar-name').innerText = data.name || 'Architect';
+                document.getElementById('sidebar-email').innerText = data.email;
+                document.getElementById('tier-badge-v2').innerText = data.subscription_tier.toUpperCase() + " ARCHITECT";
+                document.getElementById('avatar-circle').innerText = (data.name || 'U')[0].toUpperCase();
+            } catch (err) {
+                showToast("Error", "Failed to retrieve profile data.", "error");
+            }
+        }
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "Syncing...";
+            try {
+                const res = await fetchWithAuth('/api/me', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('profile-name').value,
+                        bio: document.getElementById('profile-bio').value,
+                        github_url: document.getElementById('link-github').value,
+                        linkedin_url: document.getElementById('link-linkedin').value,
+                        leetcode_url: document.getElementById('link-leetcode').value
+                    })
+                });
+                if (res.ok) {
+                    showToast("Success", "Profile updated.", "success");
+                    loadProfile();
+                }
+            } catch (err) {
+                showToast("Error", "Update failed.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        });
+        loadProfile();
+    </script>
+    <style>
+    @media (max-width: 768px) {
+        .profile-grid { grid-template-columns: 1fr !important; }
+        .danger-zone-content { flex-direction: column; align-items: flex-start; }
+        .btn-danger { width: 100%; justify-content: center; }
+    }
+    </style>
+</body>
+</html>

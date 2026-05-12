@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumeint Architecture — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="upload.html" class="nav-link active" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main id="step-1" class="page-container" style="max-width:800px;">
+        <header style="text-align:center;margin-bottom:var(--space-64);">
+            <div class="sticker-badge gold" style="display:inline-flex;margin-bottom:var(--space-20);">AI Architecture Engine</div>
+            <h1 style="font-family:var(--font-display);font-size:clamp(2rem, 5vw, 3rem);font-weight:800;letter-spacing:-0.04em;margin-bottom:var(--space-12);">Architect Your Next <span class="gradient-text">Project</span></h1>
+            <p style="color:var(--text-secondary);font-size:1.1rem;">Transform any curriculum into a job-winning architecture.</p>
+        </header>
+        <div class="section-card" style="padding:var(--space-48);">
+            <div class="form-group">
+                <label class="form-label-v2">Architecture Name</label>
+                <input type="text" id="course-name" class="form-input" placeholder="E.g. Distributed Systems Architecture">
+            </div>
+            <div class="form-group">
+                <label class="form-label-v2">Blueprint Intensity</label>
+                <select id="project-duration" class="form-input">
+                    <option value="2">2 Weeks — Rapid Prototype</option>
+                    <option value="4" selected>4 Weeks — Standard Build</option>
+                    <option value="8">8 Weeks — Engineering Capstone</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label-v2">Curriculum Syllabus</label>
+                <textarea id="syllabus-text" class="form-input" style="min-height:180px;resize:vertical;" placeholder="Paste the course objectives, schedule, or technical requirements here..."></textarea>
+            </div>
+            <div style="display:flex;align-items:center;gap:var(--space-16);margin:var(--space-24) 0;">
+                <div style="flex:1;height:1px;background:var(--border-muted);"></div>
+                <span style="font-size:0.7rem;color:var(--text-tertiary);font-weight:800;letter-spacing:0.08em;">OR UPLOAD DOCUMENT</span>
+                <div style="flex:1;height:1px;background:var(--border-muted);"></div>
+            </div>
+            <div id="drop-zone" class="upload-dropzone">
+                <input type="file" id="syllabus-file" class="hidden" accept=".pdf,.doc,.docx,.txt">
+                <div class="upload-dropzone-inner" onclick="document.getElementById('syllabus-file').click()">
+                    <div style="font-size:2.5rem;margin-bottom:var(--space-12);">📁</div>
+                    <div style="font-weight:700;margin-bottom:var(--space-8);">Click or Drag Architecture Blueprint</div>
+                    <div style="font-size:0.85rem;color:var(--text-tertiary);">PDF, DOCX, or TXT up to 10MB</div>
+                </div>
+                <p id="file-name" style="margin-top:var(--space-12);color:var(--accent-gold);font-weight:700;font-size:0.875rem;"></p>
+            </div>
+            <button id="generate-btn" class="btn btn-primary btn-glow" style="width:100%;margin-top:var(--space-40);height:56px;font-size:1.05rem;">
+                Architect Roadmap
+            </button>
+        </div>
+    </main>
+    <!-- Step 2: Processing -->
+    <main id="step-2" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;padding:var(--space-48);">
+        <div style="width:52px;height:52px;border:3px solid var(--border-muted);border-top-color:var(--accent-gold);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+        <h2 style="margin-top:var(--space-24);font-family:var(--font-display);">Architecting System...</h2>
+        <p style="color:var(--text-secondary);margin-top:var(--space-8);">Mapping milestones to industry standards.</p>
+    </main>
+    <!-- Step 3: Selection -->
+    <main id="step-3" class="max-width-container" style="display:none;padding-top:var(--space-80);padding-bottom:var(--space-80);">
+        <header class="ideas-header">
+            <div>
+                <div class="sticker-badge gold" style="display:inline-flex;margin-bottom:var(--space-12);">5 AI-Crafted Architectures</div>
+                <h1 style="font-family:var(--font-display);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:800;letter-spacing:-0.03em;margin-bottom:var(--space-8);">
+                    Choose Your <span class="gradient-text">Path</span>
+                </h1>
+                <p style="color:var(--text-secondary);">Select the architecture that aligns with your professional focus.</p>
+            </div>
+            <div class="ideas-actions">
+                <button id="refresh-btn" class="btn btn-secondary btn-icon" title="Generate 5 new project ideas">
+                    <span id="refresh-icon">&#x21BB;</span> Regenerate
+                </button>
+                <button class="btn btn-ghost btn-icon" onclick="backToForm()" title="Edit your details">
+                    &#8592; Edit Details
+                </button>
+            </div>
+        </header>
+        <div id="ideas-grid" class="ideas-grid"></div>
+    </main>
+    <script src="js/app.js"></script>
+    <script>
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = menu.classList.toggle('active');
+            this.textContent = isOpen ? '✕' : '☰';
+        });
+
+        // Store data globally so createProject() can access it
+        let globalSyllabusText = '';
+        let globalDuration = '4';
+        let globalSuggestions = [];
+
+        const fileInput = document.getElementById('syllabus-file');
+        const fileNameDisp = document.getElementById('file-name');
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            if (e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                fileNameDisp.innerText = `📎 Attached: ${e.dataTransfer.files[0].name}`;
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files[0]) fileNameDisp.innerText = `📎 Attached: ${fileInput.files[0].name}`;
+        });
+
+        document.getElementById('generate-btn').addEventListener('click', async () => {
+            const courseName = document.getElementById('course-name').value.trim();
+            const duration = document.getElementById('project-duration').value;
+            const syllabusText = document.getElementById('syllabus-text').value.trim();
+            const file = fileInput.files[0];
+
+            if (!courseName || (!syllabusText && !file)) {
+                showToast("Missing Data", "Please provide a name and syllabus.", "warning");
+                return;
+            }
+
+            // Store globally for use in createProject
+            globalSyllabusText = syllabusText;
+            globalDuration = duration;
+
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-2').style.display = 'flex';
+
+            const formData = new FormData();
+            formData.append('course_name', courseName);
+            formData.append('duration_weeks', duration);
+            if (syllabusText) formData.append('text_syllabus', syllabusText);
+            if (file) formData.append('file', file);
+
+            try {
+                // FIXED: correct endpoint is /api/suggestions
+                const res = await fetchWithAuth('/api/suggestions', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Generation failed');
+                }
+                const data = await res.json();
+                // FIXED: extract the .suggestions array from the response
+                globalSyllabusText = data.syllabus_text || syllabusText;
+                globalSuggestions = data.suggestions || [];
+                renderIdeas(globalSuggestions);
+            } catch (err) {
+                showToast("Error", err.message || "Generation failed. Try again.", "error");
+                document.getElementById('step-1').style.display = 'block';
+                document.getElementById('step-2').style.display = 'none';
+            }
+        });
+
+        const DIFF_META = {
+            'beginner':     { label: 'Beginner',     color: '#22c55e', bg: 'rgba(34,197,94,0.12)',   icon: '◈' },
+            'intermediate': { label: 'Intermediate', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)',  icon: '◈◈' },
+            'advanced':     { label: 'Advanced',     color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   icon: '◈◈◈' },
+        };
+
+        function getDiffMeta(difficulty) {
+            return DIFF_META[(difficulty || '').toLowerCase()] || { label: difficulty || 'Standard', color: 'var(--accent-gold)', bg: 'rgba(212,162,78,0.12)', icon: '◈' };
+        }
+
+        function renderIdeas(suggestions) {
+            if (!suggestions || suggestions.length === 0) {
+                showToast("Error", "No suggestions returned. Please try again.", "error");
+                document.getElementById('step-1').style.display = 'block';
+                document.getElementById('step-2').style.display = 'none';
+                return;
+            }
+            const grid = document.getElementById('ideas-grid');
+            grid.innerHTML = suggestions.map((idea, index) => {
+                const dm = getDiffMeta(idea.difficulty);
+                const techPills = (idea.tech_stack || []).slice(0, 3).map(t =>
+                    `<span class="tech-pill">${t}</span>`
+                ).join('');
+                
+                return `
+                <div class="forge-idea-card" style="--card-accent:${dm.color}; animation-delay: ${index * 0.1}s" data-index="${index}">
+                    <div class="card-glow"></div>
+                    <div class="idea-card-header">
+                        <div class="difficulty-tag" style="background: ${dm.bg}; color: ${dm.color}">
+                            <span class="diff-icon">${dm.icon}</span>
+                            <span class="diff-label">${dm.label}</span>
+                        </div>
+                        <div class="architecture-index">A-${String(index + 1).padStart(2,'0')}</div>
+                    </div>
+                    <div class="idea-card-body">
+                        <h3 class="idea-title">${idea.title}</h3>
+                        <p class="idea-desc">${idea.description}</p>
+                    </div>
+                    <div class="idea-card-footer">
+                        <div class="tech-stack-preview">${techPills}</div>
+                        <button class="btn-forge-select" onclick="createProject(${index})">
+                            Build Path
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('step-2').style.display = 'none';
+            document.getElementById('step-3').style.display = 'block';
+        }
+
+        function renderSkeleton() {
+            const grid = document.getElementById('ideas-grid');
+            grid.innerHTML = Array(5).fill(0).map((_, i) => `
+                <div class="forge-idea-card skeleton" style="animation-delay: ${i * 0.1}s">
+                    <div class="skeleton-header"></div>
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-text"></div>
+                    <div class="skeleton-text short"></div>
+                    <div class="skeleton-footer"></div>
+                </div>
+            `).join('');
+        }
+
+        function backToForm() {
+            document.getElementById('step-3').style.display = 'none';
+            document.getElementById('step-1').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function regenerateIdeas() {
+            const btn = document.getElementById('refresh-btn');
+            const icon = document.getElementById('refresh-icon');
+            
+            if (btn.disabled) return;
+            
+            btn.disabled = true;
+            icon.classList.add('spin-icon');
+            
+            // Show skeleton instead of full loader for better feel
+            renderSkeleton();
+            
+            const courseName = document.getElementById('course-name').value.trim();
+            const duration = document.getElementById('project-duration').value;
+            const syllabusText = document.getElementById('syllabus-text').value.trim();
+            const file = document.getElementById('syllabus-file').files[0];
+
+            const formData = new FormData();
+            formData.append('course_name', courseName);
+            formData.append('duration_weeks', duration);
+            if (syllabusText) formData.append('text_syllabus', syllabusText);
+            if (file) formData.append('file', file);
+
+            try {
+                const res = await fetchWithAuth('/api/suggestions', { method: 'POST', body: formData });
+                if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Generation failed'); }
+                const data = await res.json();
+                globalSuggestions = data.suggestions || [];
+                renderIdeas(globalSuggestions);
+                showToast('Refreshed', '5 new architecture blueprints generated.', 'success');
+            } catch (err) {
+                showToast('Error', err.message || 'Regeneration failed.', 'error');
+                // If failed, we might want to go back or show something else
+            } finally {
+                btn.disabled = false;
+                icon.classList.remove('spin-icon');
+            }
+        }
+
+        document.getElementById('refresh-btn').addEventListener('click', regenerateIdeas);
+
+        async function createProject(suggestionIndex) {
+            const courseName = document.getElementById('course-name').value.trim();
+            const suggestion = globalSuggestions[suggestionIndex];
+            if (!suggestion) {
+                showToast("Error", "Could not find the selected project.", "error");
+                return;
+            }
+
+            // Show loading
+            document.getElementById('step-3').style.display = 'none';
+            document.getElementById('step-2').style.display = 'flex';
+
+            const formData = new FormData();
+            formData.append('course_name', courseName);
+            formData.append('duration_weeks', globalDuration);
+            formData.append('title', suggestion.title);
+            // FIXED: pass full suggestion object as selected_project JSON
+            formData.append('selected_project', JSON.stringify(suggestion));
+            if (globalSyllabusText) formData.append('text_syllabus', globalSyllabusText);
+
+            try {
+                const res = await fetchWithAuth('/api/projects', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Project creation failed');
+                }
+                const project = await res.json();
+                showToast("Success", "Architecture built! Loading your roadmap...", "success");
+                setTimeout(() => {
+                    window.location.href = `project.html?id=${project.id}`;
+                }, 800);
+            } catch (err) {
+                showToast("Error", err.message || "Initialization failed.", "error");
+                document.getElementById('step-3').style.display = 'block';
+                document.getElementById('step-2').style.display = 'none';
+            }
+        }
+    </script>
+    <style>
+    /* ── Dropzone ── */
+    .upload-dropzone {
+        border: 2px dashed var(--border-muted);
+        border-radius: var(--radius-lg);
+        padding: var(--space-40) var(--space-24);
+        text-align: center;
+        transition: all var(--transition-base);
+        cursor: pointer;
+        background: rgba(255,255,255,0.02);
+        position: relative;
+        overflow: hidden;
+    }
+    .upload-dropzone:hover, .upload-dropzone.active {
+        border-color: var(--accent-gold);
+        background: rgba(212,162,78,0.05);
+        box-shadow: 0 0 20px rgba(212,162,78,0.1);
+    }
+
+    /* ── Ideas Header ── */
+    .ideas-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-24);
+        margin-bottom: var(--space-64);
+        flex-wrap: wrap;
+        border-bottom: 1px solid var(--border-muted);
+        padding-bottom: var(--space-32);
+    }
+    .ideas-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--space-12);
+    }
+    
+    .btn-icon {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+    }
+
+    .btn-secondary {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-default);
+        color: var(--text-primary);
+    }
+    .btn-secondary:hover {
+        background: var(--bg-elevated);
+        border-color: var(--text-secondary);
+    }
+
+    /* ── Ideas Grid ── */
+    .ideas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: var(--space-32);
+    }
+
+    /* ── Forge Idea Card ── */
+    .forge-idea-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-default);
+        border-radius: 20px;
+        padding: var(--space-32);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        min-height: 380px;
+        animation: slideUpFade 0.6s ease both;
+    }
+    
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .forge-idea-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--card-accent);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px var(--card-accent) inset;
+    }
+
+    .card-glow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 0% 0%, var(--card-accent), transparent 50%);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+    }
+    .forge-idea-card:hover .card-glow { opacity: 0.1; }
+
+    .idea-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-24);
+    }
+
+    .difficulty-tag {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 100px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .architecture-index {
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        font-weight: 700;
+    }
+
+    .idea-card-body {
+        flex: 1;
+        margin-bottom: var(--space-32);
+    }
+
+    .idea-title {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin: 0 0 var(--space-12) 0;
+        line-height: 1.2;
+        color: var(--text-primary);
+    }
+
+    .idea-desc {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .idea-card-footer {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-20);
+    }
+
+    .tech-stack-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .tech-pill {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-tertiary);
+        background: var(--bg-tertiary);
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border-muted);
+    }
+
+    .btn-forge-select {
+        background: var(--text-primary);
+        color: var(--bg-primary);
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-forge-select:hover {
+        background: var(--card-accent);
+        color: #000;
+        transform: scale(1.02);
+    }
+    
+    .btn-forge-select svg {
+        transition: transform 0.3s ease;
+    }
+    .btn-forge-select:hover svg {
+        transform: translateX(4px);
+    }
+
+    /* ── Skeleton State ── */
+    .skeleton {
+        pointer-events: none;
+    }
+    .skeleton-header, .skeleton-title, .skeleton-text, .skeleton-footer {
+        background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-elevated) 50%, var(--bg-tertiary) 75%);
+        background-size: 200% 100%;
+        animation: skeletonShimmer 1.5s infinite linear;
+        border-radius: 4px;
+    }
+    @keyframes skeletonShimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    .skeleton-header { width: 80px; height: 24px; border-radius: 100px; margin-bottom: 24px; }
+    .skeleton-title { width: 100%; height: 32px; margin-bottom: 12px; }
+    .skeleton-text { width: 100%; height: 16px; margin-bottom: 8px; }
+    .skeleton-text.short { width: 60%; }
+    .skeleton-footer { width: 100%; height: 48px; margin-top: auto; border-radius: 12px; }
+
+    /* ── Refresh Icon Spin ── */
+    .spin-icon {
+        animation: rotateFull 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes rotateFull {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    </style>
+</body>
+</html>

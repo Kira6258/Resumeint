@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link active" id="nav-dashboard">Dashboard</a>
+                    <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="page-container">
+        <header class="dashboard-header-premium animate-fade-in">
+            <div class="dashboard-welcome">
+                <div class="sticker-badge">Dashboard</div>
+                <h1 class="dashboard-headline-premium">Your Project <span class="gradient-text">Command Center</span>
+                </h1>
+                <p class="dashboard-subtitle-premium">Track your engineering milestones and architectural progress in
+                    real-time.</p>
+            </div>
+            <div class="dashboard-actions-premium">
+                <a href="upload.html" class="btn btn-primary btn-glow">+ Start New Architecture</a>
+            </div>
+        </header>
+        <section class="journey-overview animate-fade-in stagger-1">
+            <div class="bento-card">
+                <div class="progress-ring-container">
+                    <svg class="progress-ring" width="120" height="120">
+                        <circle class="progress-ring-circle" stroke="var(--border-default)" stroke-width="8"
+                            fill="transparent" r="50" cx="60" cy="60" />
+                        <circle id="overall-progress-ring" class="progress-ring-circle" stroke="var(--accent-orange)"
+                            stroke-width="8" stroke-dasharray="314.159" stroke-dashoffset="314.159" fill="transparent"
+                            r="50" cx="60" cy="60" />
+                    </svg>
+                    <div id="overall-progress-text" class="progress-ring-text">0%</div>
+                </div>
+                <div class="journey-content">
+                    <h3 style="margin-bottom: var(--space-8);">Journey So Far</h3>
+                    <p class="text-tertiary" style="margin-bottom: var(--space-16);">You've mastered <span
+                            id="mastered-weeks" class="text-primary">0</span> milestones across all architectures.</p>
+                    <div class="milestone-track" id="milestone-track" style="display: flex; gap: var(--space-8);">
+                        <!-- Milestone dots will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="stats-overview-grid animate-fade-in stagger-2">
+            <div class="bento-card-compact">
+                <div class="stat-inner">
+                    <div class="stat-icon">📁</div>
+                    <div>
+                        <div class="stat-label-v2">Total Projects</div>
+                        <div id="total-projects" class="stat-value-v2">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bento-card-compact">
+                <div class="stat-inner">
+                    <div class="stat-icon">⚡</div>
+                    <div>
+                        <div class="stat-label-v2">Active Goals</div>
+                        <div id="active-projects" class="stat-value-v2">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bento-card-compact">
+                <div class="stat-inner">
+                    <div class="stat-icon">💎</div>
+                    <div>
+                        <div class="stat-label-v2">Subscription</div>
+                        <div id="subscription-status" class="stat-status-v2">Loading...</div>
+                    </div>
+                </div>
+                <button id="upgrade-btn" class="stat-upgrade-link" style="display: none;">Upgrade ↗</button>
+            </div>
+        </div>
+        <section class="dashboard-main-content animate-fade-in stagger-3">
+            <div class="section-header-row">
+                <h2 class="roadmap-section-title">Active Roadmaps</h2>
+                <div class="section-divider"></div>
+            </div>
+            <div id="projects-grid" class="projects-grid-v2">
+                <p class="project-empty-desc">Scanning for active architectures...</p>
+            </div>
+        </section>
+    </main>
+    <script src="js/app.js"></script>
+    <script>
+        async function deleteProject(e, projectId) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!confirm("Are you sure you want to delete this project? All roadmap and check-in data will be lost.")) return;
+            const btn = e.currentTarget;
+            setButtonLoading(btn, true, "...");
+            try {
+                const res = await fetchWithAuth(`/api/projects/${projectId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("Deleted", "Architecture removed successfully.", "success");
+                    loadDashboard();
+                } else {
+                    showToast("Error", "Failed to delete project.", "error");
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        }
+        async function loadDashboard() {
+            const projectsGrid = document.getElementById('projects-grid');
+            try {
+                const res = await fetchWithAuth('/api/projects');
+                if (!res.ok) throw new Error("Session expired");
+                const projects = await res.json();
+                // Fetch user data for subscription status
+                const userRes = await fetchWithAuth('/api/me');
+                const userData = await userRes.json();
+                const subStatus = document.getElementById('subscription-status');
+                const upgradeBtn = document.getElementById('upgrade-btn');
+                if (userData.subscription_tier === 'pro') {
+                    subStatus.innerHTML = 'Pro Architecture 💎';
+                    subStatus.style.color = 'var(--accent-gold)';
+                    upgradeBtn.style.display = 'none';
+                } else {
+                    subStatus.innerHTML = 'Free Tier ';
+                    upgradeBtn.style.display = 'block';
+                    upgradeBtn.onclick = () => window.location.href = 'pricing.html';
+                }
+                document.getElementById('total-projects').innerText = projects.length;
+                document.getElementById('active-projects').innerText = projects.filter(p => p.status === 'active').length;
+                // Overall progress calculation
+                let totalMastered = 0;
+                let totalPossible = 0;
+                if (projects.length === 0) {
+                    projectsGrid.innerHTML = `
+                        <div class="empty-state-card">
+                        
+                            <h2 class="empty-state-title">Ready for Liftoff?</h2>
+                            <p class="empty-state-desc">You haven't architected any projects yet. Turn your course syllabus into a production-ready roadmap today.</p>
+                            <div class="empty-state-actions">
+                                <a href="upload.html" class="btn btn-primary btn-glow">Start Your First Roadmap</a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                projectsGrid.innerHTML = projects.map((p, i) => {
+                    const roadmap = p.roadmap_data || [];
+                    const weekCount = roadmap.length || 4;
+                    const milestoneProgress = p.milestone_progress || {};
+                    // Count weeks that are FULLY completed (Accepted Review + All Milestones)
+                    let completedCount = 0;
+                    // Find unique accepted weeks
+                    const acceptedWeeks = new Set();
+                    if (p.check_ins && Array.isArray(p.check_ins)) {
+                        p.check_ins.forEach(c => {
+                            if (c.status === 'accepted') acceptedWeeks.add(c.week_number);
+                        });
+                    }
+                    // Check if each week meets both criteria
+                    roadmap.forEach(w => {
+                        const weekNum = w.week;
+                        const totalMilestones = (w.milestones || []).length;
+                        const completedMilestones = (milestoneProgress[weekNum.toString()] || []).length;
+                        if (acceptedWeeks.has(weekNum) && completedMilestones === totalMilestones && totalMilestones > 0) {
+                            completedCount++;
+                        }
+                    });
+                    const percentRaw = Math.round((completedCount / weekCount) * 100);
+                    const percent = percentRaw > 100 ? 100 : percentRaw;
+                    totalMastered += completedCount;
+                    totalPossible += weekCount;
+                    const statusColor = percent === 100 ? 'var(--accent-green)' : (percent > 0 ? 'var(--accent-orange)' : 'var(--accent-blue)');
+                    const statusText = percent === 100 ? 'Mastered' : (percent > 0 ? 'In Progress' : 'Architected');
+                    return `
+                    <div class="project-card-wrapper animate-fade-in" style="animation-delay: ${0.4 + (i * 0.1)}s">
+                        <a href="project.html?id=${p.id}" class="project-card-link">
+                            <div class="project-card-v2">
+                                <div class="project-card-header-v2">
+                                    <div class="status-indicator" style="color: ${statusColor}"></div>
+                                    <span class="status-label-v2">${statusText}</span>
+                                    <div class="spacer"></div>
+                                    <div class="sticker-badge-v2">${weekCount}W</div>
+                                </div>
+                                <div class="project-card-content-v2">
+                                    <div class="project-course-v2">${p.course_name}</div>
+                                    <h3 class="project-title-v2">${p.title}</h3>
+                                </div>
+                                <div class="project-progress-footer-v2">
+                                    <div class="progress-stats-v2">
+                                        <span class="progress-fraction-v2">${completedCount} / ${weekCount}</span>
+                                        <span class="progress-label-v2">Weeks Mastered</span>
+                                    </div>
+                                    <div class="progress-percent-v2">${percent}%</div>
+                                </div>
+                                <div class="progress-rail-v2">
+                                    <div class="progress-fill-v2" style="width: ${percent}%; background: ${statusColor}"></div>
+                                </div>
+                            </div>
+                        </a>
+                        <button onclick="deleteProject(event, ${p.id})" class="btn-delete-v2" title="Delete Architecture">
+                            🗑️
+                        </button>
+                    </div>
+                `;
+                }).join('');
+                // Update Overall Progress Ring
+                const overallPercent = totalPossible > 0 ? Math.round((totalMastered / totalPossible) * 100) : 0;
+                const ring = document.getElementById('overall-progress-ring');
+                const text = document.getElementById('overall-progress-text');
+                const masteredCount = document.getElementById('mastered-weeks');
+                if (ring && text) {
+                    const circumference = 2 * Math.PI * 50;
+                    const offset = circumference - (overallPercent / 100) * circumference;
+                    ring.style.strokeDashoffset = offset;
+                    text.innerText = `${overallPercent}%`;
+                    masteredCount.innerText = totalMastered;
+                }
+            } catch (err) {
+                console.error(err);
+                if (err.message.includes("Session expired")) window.location.href = 'login.html';
+            }
+        }
+        loadDashboard();
+    </script>
+    <script>
+        document.getElementById('mobile-toggle').addEventListener('click', function () {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = menu.classList.toggle('active');
+            this.textContent = isOpen ? '✕' : '☰';
+        });
+    </script>
+</body>
+
+</html>

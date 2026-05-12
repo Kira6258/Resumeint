@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Check-in — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <div class="checkin-shell">
+        <!-- Left: Form -->
+        <div class="checkin-left">
+            <div>
+                <div class="checkin-crumb">
+                    <a href="dashboard.html" class="checkin-crumb-link">← Dashboard</a>
+                    <span class="checkin-crumb-sep">/</span>
+                    <span class="checkin-crumb-current">Weekly Sync</span>
+                </div>
+                <h1 class="checkin-headline">Ship Your <br>Latest Work <span style="font-size: 1.4rem; vertical-align: middle;">🚀</span></h1>
+                <p class="checkin-desc">Drop your code below. Our AI mentor will review your architecture and help you prepare for next week's milestones.</p>
+            </div>
+            <!-- Week Selector -->
+            <div style="margin-top: 10px;">
+                <div class="checkin-sec-label">Select Active Week</div>
+                <div class="week-pills" id="week-selector"></div>
+            </div>
+            <!-- Form -->
+            <div class="checkin-form-block">
+                <div>
+                    <div class="field-label" style="display: flex; justify-content: space-between;">
+                        <span><span class="field-label-dot"></span>Core Logic &amp; Code Highlights</span>
+                        <span class="char-count" id="code-char-count">0 / 5000</span>
+                    </div>
+                    <div class="code-editor-wrap">
+                        <div class="line-numbers" id="line-numbers">1</div>
+                        <span class="code-lang-tag">code</span>
+                        <textarea id="code-snippet" class="form-input code-editor-textarea" maxlength="5000" placeholder="// Paste your implementation highlights here...&#10;// e.g. key functions, architecture decisions, or tricky logic"></textarea>
+                    </div>
+                </div>
+                <div>
+                    <div class="field-label"><span class="field-label-dot"></span>GitHub Commit / Repo Link</div>
+                    <div class="github-input-wrap">
+                        <span class="github-input-icon">⌥</span>
+                        <input type="url" id="github-link" class="form-input github-input-field" placeholder="https://github.com/your-repo">
+                    </div>
+                </div>
+                <div class="submit-row">
+                    <span class="submit-hint">AI review takes ~10–15 seconds</span>
+                    <button id="submit-btn" class="btn btn-primary submit-btn-round">
+                        <span id="submit-btn-text">Analyze Progress</span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+            <!-- History -->
+            <div class="checkin-history-section hidden" id="previous-checkins">
+                <div class="history-label">Previous Submissions</div>
+                <div class="history-items" id="checkins-list"></div>
+            </div>
+        </div>
+        <!-- Right: Sidebar -->
+        <div class="checkin-right">
+            <div class="checkin-sidebar-top">
+                <div class="checkin-sidebar-week-label" id="sidebar-week-label">Select a week</div>
+                <div class="checkin-sidebar-week-title" id="sidebar-week-title">This Week's Objectives</div>
+            </div>
+            <div class="progress-track">
+                <div class="progress-track-label">
+                    <span>Overall Progress</span>
+                    <strong class="progress-track-pct" id="progress-pct">0%</strong>
+                </div>
+                <div class="progress-rail">
+                    <div class="progress-rail-fill" id="progress-bar"></div>
+                </div>
+            </div>
+            <div id="hints-body">
+                <div class="checkin-hints-empty">
+                    <div class="checkin-hints-empty-icon">📁</div>
+                    <div class="checkin-hints-empty-text">Select a week to view<br>milestones & deliverables</div>
+                </div>
+            </div>
+            <div class="feedback-inline-panel" id="feedback-area">
+                <div class="feedback-inline-label"><span class="feedback-inline-dot"></span> Mentor is Thinking...</div>
+                <div class="feedback-inline-text" id="feedback-content">We're reviewing your implementation highlights. This usually takes 10s.</div>
+            </div>
+        </div>
+    </div>
+    <script src="js/app.js"></script>
+    <script>
+        let currentWeek = 1;
+        let roadmapData = null;
+        let projectObj = null;
+        let totalWeeks = 4;
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('id');
+        async function loadProjectData() {
+            try {
+                const res = await fetchWithAuth(`/api/projects/${projectId}`);
+                if (!res.ok) throw new Error("Project not found");
+                projectObj = await res.json();
+                roadmapData = projectObj.roadmap_data;
+                totalWeeks = roadmapData ? roadmapData.length : 4;
+                renderWeekSelector();
+                updateHints();
+                loadCheckins(); // Load checkins after project data is ready
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        function renderWeekSelector() {
+            const selector = document.getElementById('week-selector');
+            let btns = '';
+            for (let i = 1; i <= totalWeeks; i++) {
+                const active = i === currentWeek ? 'active' : '';
+                btns += `<button onclick="setWeek(${i})" class="week-pill ${active}">Week ${i}</button>`;
+            }
+            selector.innerHTML = btns;
+        }
+        async function loadCheckins() {
+            if (!projectObj) return;
+            try {
+                const res = await fetchWithAuth(`/api/projects/${projectId}/checkins`);
+                if (!res.ok) return;
+                const checkins = await res.json();
+                // Count unique accepted weeks
+                const acceptedWeeks = new Set();
+                checkins.forEach(c => {
+                    if (c.status === 'accepted') acceptedWeeks.add(c.week_number);
+                });
+                // Check Roadmap + Milestones
+                let completedCount = 0;
+                const mProgress = projectObj.milestone_progress || {};
+                (roadmapData || []).forEach(w => {
+                    const weekNum = w.week;
+                    const totalM = (w.milestones || []).length;
+                    const doneM = (mProgress[weekNum.toString()] || []).length;
+                    if (acceptedWeeks.has(weekNum) && doneM === totalM && totalM > 0) {
+                        completedCount++;
+                    }
+                });
+                const percent = Math.min(100, Math.round((completedCount / totalWeeks) * 100));
+                document.getElementById('progress-bar').style.width = `${percent}%`;
+                document.getElementById('progress-pct').innerText = `${percent}%`;
+                if (checkins.length > 0) {
+                    document.getElementById('previous-checkins').classList.remove('hidden');
+                    document.getElementById('checkins-list').innerHTML = checkins.map(c => {
+                        let statusHtml = '';
+                        if (c.status === 'accepted') statusHtml = '<span class="sticker-badge success" style="font-size: 0.6rem; padding: 2px 8px;">Accepted</span>';
+                        else if (c.status === 'redo') statusHtml = '<span class="sticker-badge error" style="font-size: 0.6rem; padding: 2px 8px;">Redo</span>';
+                        else statusHtml = '<span class="sticker-badge" style="font-size: 0.6rem; padding: 2px 8px;">Pending</span>';
+                        return `
+                        <a class="history-item" href="feedback.html?id=${c.id}">
+                            <div class="history-week-dot">W${c.week_number}</div>
+                            <div class="history-item-meta">
+                                <div class="history-item-title" style="display: flex; align-items: center; gap: 8px;">
+                                    ${statusHtml}
+                                    <span>Review for Week ${c.week_number}</span>
+                                </div>
+                                <div class="history-item-date">${new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                            </div>
+                            <span class="history-item-arrow">→</span>
+                        </a>
+                        `;
+                    }).join('');
+                }
+            } catch (err) { console.error(err); }
+        }
+        function updateHints() {
+            if (!roadmapData) return;
+            const weekData = roadmapData.find(w => w.week === currentWeek);
+            if (!weekData) return;
+            document.getElementById('sidebar-week-label').innerText = `Week ${currentWeek} of ${totalWeeks}`;
+            document.getElementById('sidebar-week-title').innerText = weekData.goal || "This Week's Objectives";
+            const milestones = (weekData.milestones || []).map(m => `
+                <li>
+                    <div class="milestone-icon">✨</div>
+                    <span class="milestone-text">${formatText(m)}</span>
+                </li>
+            `).join('');
+            document.getElementById('hints-body').innerHTML = `
+                <div class="milestones-wrap">
+                    <div class="milestones-header">Milestones</div>
+                    <ul class="milestone-list">${milestones}</ul>
+                </div>
+                <div class="deliverable-wrap">
+                    <div class="deliverable-card-new">
+                        <div class="deliverable-tag">📦 Deliverable</div>
+                        <p class="deliverable-text-new">${formatText(weekData.deliverable) || 'No deliverable specified.'}</p>
+                    </div>
+                </div>
+            `;
+        }
+        function setWeek(w) {
+            currentWeek = w;
+            document.querySelectorAll('.week-pill').forEach((pill, i) => {
+                pill.className = `week-pill${i + 1 === w ? ' active' : ''}`;
+            });
+            updateHints();
+        }
+        // Character counter styling
+        const codeArea = document.getElementById('code-snippet');
+        const charCountDisp = document.getElementById('code-char-count');
+        if (codeArea && charCountDisp) {
+            codeArea.addEventListener('input', () => {
+                const count = codeArea.value.length;
+                if (count > 4500) charCountDisp.style.color = 'var(--accent-red)';
+                else if (count > 4000) charCountDisp.style.color = 'var(--accent-orange)';
+                else charCountDisp.style.color = 'var(--text-tertiary)';
+            });
+            // Initial call
+            updateLineNumbers(codeArea);
+        }
+        document.getElementById('submit-btn').addEventListener('click', async () => {
+            const code = codeArea.value;
+            const github = document.getElementById('github-link').value;
+            const btn = document.getElementById('submit-btn');
+            const btnText = document.getElementById('submit-btn-text');
+            try {
+                setButtonLoading(btn, true, 'Analyzing...');
+                const res = await fetchWithAuth('/api/checkins', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        project_id: projectId, week_number: currentWeek,
+                        code_submitted: code, github_link: github
+                    })
+                });
+                if (!res.ok) throw new Error("Submission failed");
+                showToast("Code Received!", "Our AI mentor is reviewing your code. ✨", "success");
+                const feedbackContent = document.getElementById('feedback-content');
+                feedbackContent.innerText = '';
+                // Show the feedback panel immediately
+                document.getElementById('feedback-area').style.display = 'block';
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.replace('data: ', '').trim();
+                            if (dataStr === '[DONE]') {
+                                await loadCheckins();
+                                window.location.href = 'dashboard.html';
+                                break;
+                            } else {
+                                // FIXED: extract and display each chunk as it streams
+                                try {
+                                    const parsed = JSON.parse(dataStr);
+                                    if (parsed.chunk) {
+                                        feedbackContent.innerText += parsed.chunk;
+                                    }
+                                } catch (e) { /* ignore malformed lines */ }
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                showToast("Submission Failed", err.message, "error");
+                document.getElementById('feedback-content').innerText = "Error: " + err.message;
+            } finally {
+                setButtonLoading(btn, false, 'Analyze Progress');
+            }
+        });
+        loadProjectData(); // loadCheckins() is called internally after project data loads
+    </script>
+    <script>
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = menu.classList.toggle('active');
+            this.textContent = isOpen ? '✕' : '☰';
+        });
+    </script>
+</body>
+</html>

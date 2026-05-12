@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link hidden" id="nav-dashboard">Dashboard</a>
+                    <a href="upload.html" class="nav-link hidden" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link active">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="page-container">
+        <header class="pricing-hero animate-fade-in">
+            <h1 class="hero-headline">Simple <span class="gradient-text">Transparent</span> Pricing</h1>
+            <p class="hero-description">Choose the plan that fits your ambition. Start for free, scale when you're
+                ready.</p>
+            <div class="billing-toggle-container">
+                <span class="toggle-label active" id="label-monthly">Monthly</span>
+                <label class="switch">
+                    <input type="checkbox" id="billing-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label" id="label-yearly">Yearly <span class="save-badge">Save ₹50</span></span>
+            </div>
+        </header>
+        <section class="pricing-section animate-fade-in stagger-1">
+            <div class="pricing-grid">
+                <!-- Free Plan -->
+                <div class="bento-card pricing-card">
+                    <div class="plan-header">
+                        <div class="plan-name">Explorer</div>
+                        <div class="plan-price">₹0<span class="price-period">/forever</span></div>
+                        <p class="plan-desc">For those just starting their journey.</p>
+                    </div>
+                    <ul class="plan-features">
+                        <li><span class="feature-icon">✅</span> 1 Project Architecture</li>
+                        <li><span class="feature-icon">✅</span> Interactive Roadmap</li>
+                        <li><span class="feature-icon">✅</span> Basic AI Feedback</li>
+                        <li><span class="feature-icon disabled">❌</span> GitHub Sync</li>
+                        <li><span class="feature-icon disabled">❌</span> Priority AI Support</li>
+                    </ul>
+                    <div class="plan-footer">
+                        <button class="btn btn-outline btn-full" disabled>Current Plan</button>
+                    </div>
+                </div>
+                <!-- Pro Plan -->
+                <div class="bento-card pricing-card featured" id="pro-card"
+                    style="border-color:var(--accent-gold);background:radial-gradient(circle at top right, rgba(212,162,78,0.06), transparent);">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <div class="plan-header">
+                        <div class="plan-name" style="color:var(--accent-gold);">Architect Pro</div>
+                        <div class="plan-price" id="pro-price">₹50<span class="price-period"
+                                id="pro-period">/month</span></div>
+                        <p class="plan-desc">Full suite for serious builders.</p>
+                    </div>
+                    <ul class="plan-features">
+                        <li><span class="feature-icon">✨</span> Unlimited Architectures</li>
+                        <li><span class="feature-icon">✨</span> 1-Click GitHub Sync</li>
+                        <li><span class="feature-icon">✨</span> Deep AI Code Reviews</li>
+                        <li><span class="feature-icon">✨</span> Priority Reasoning Model</li>
+                        <li><span class="feature-icon">✨</span> Advanced MySQL Export</li>
+                    </ul>
+                    <div class="plan-footer">
+                        <button id="checkout-btn" class="btn btn-primary btn-full btn-glow">Upgrade Now</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="features-compare-section animate-fade-in stagger-2">
+            <h2 class="section-title" style="text-align:center;margin-bottom:var(--space-32);">Compare Plans</h2>
+            <div class="bento-card">
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Explorer</th>
+                            <th>Architect Pro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Project Architectures</td>
+                            <td>1</td>
+                            <td>Unlimited</td>
+                        </tr>
+                        <tr>
+                            <td>Interactive Roadmap</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                        </tr>
+                        <tr>
+                            <td>AI Code Reviews</td>
+                            <td>Basic</td>
+                            <td>Comprehensive</td>
+                        </tr>
+                        <tr>
+                            <td>GitHub Integration</td>
+                            <td>❌</td>
+                            <td>✅</td>
+                        </tr>
+                        <tr>
+                            <td>Priority AI Engine</td>
+                            <td>❌</td>
+                            <td>✅</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+    <footer class="footer-section">
+        <div class="max-width-container footer-content">
+            <div class="footer-brand">
+                <a href="index.html" class="logo">Resumeint</a>
+                <p>Architecting world-class engineers through project-based mastery.</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Platform</h4>
+                    <a href="pricing.html">Pricing</a>
+                    <a href="dashboard.html">Dashboard</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <a href="terms.html">Terms</a>
+                    <a href="privacy.html">Privacy</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">&copy; 2026 Resumeint. Engineered for the ambitious.</div>
+    </footer>
+    <script src="js/app.js"></script>
+    <script>
+        document.getElementById('mobile-toggle').addEventListener('click', function () {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = menu.classList.toggle('active');
+            this.textContent = isOpen ? '✕' : '☰';
+        });
+        const billingToggle = document.getElementById('billing-toggle');
+        const proPrice = document.getElementById('pro-price');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const labelMonthly = document.getElementById('label-monthly');
+        const labelYearly = document.getElementById('label-yearly');
+
+        function updatePricing() {
+            const isYearly = billingToggle.checked;
+            if (isYearly) {
+                proPrice.innerHTML = '₹550<span class="price-period">/year</span>';
+                labelYearly.classList.add('active');
+                labelMonthly.classList.remove('active');
+            } else {
+                proPrice.innerHTML = '₹50<span class="price-period">/month</span>';
+                labelMonthly.classList.add('active');
+                labelYearly.classList.remove('active');
+            }
+        }
+        billingToggle.addEventListener('change', updatePricing);
+
+        checkoutBtn.onclick = () => {
+            const plan = billingToggle.checked ? 'yearly' : 'monthly';
+            openRazorpay(plan, () => { window.location.href = 'dashboard.html'; });
+        };
+
+        async function checkSub() {
+            try {
+                const res = await fetchWithAuth('/api/me');
+                if (!res.ok) return;
+                const user = await res.json();
+                if (user.subscription_tier === 'pro') {
+                    checkoutBtn.innerText = 'Active Plan ✔️';
+                    checkoutBtn.disabled = true;
+                }
+            } catch (e) { }
+        }
+        checkSub();
+    </script>
+</body>
+
+</html>
