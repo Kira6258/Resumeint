@@ -331,7 +331,13 @@ function renderMarkdown(text) {
 
 function formatText(text) {
     if (!text) return '';
-    return text
+    // Step 1: Escape raw HTML so browser doesn't render AI-generated tags like <header>, <button> etc.
+    const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    // Step 2: Apply safe markdown transforms on the escaped text
+    return escaped
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/`(.*?)`/g, '<code class="inline-code">$1</code>');
 }

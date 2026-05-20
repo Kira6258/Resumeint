@@ -74,7 +74,7 @@
                     </div>
                 </div>
                 <div class="submit-row">
-                    <span class="submit-hint">AI review takes ~10–15 seconds</span>
+                    <span class="submit-hint">AI review takes ~10 to 15 seconds</span>
                     <button id="submit-btn" class="btn btn-primary submit-btn-round">
                         <span id="submit-btn-text">Analyze Progress</span>
                         <span></span>
@@ -123,6 +123,11 @@
         const urlParams = new URLSearchParams(window.location.search);
         const projectId = urlParams.get('id');
         async function loadProjectData() {
+            if (!projectId) {
+                showToast('Error', 'No project selected. Go back to dashboard.', 'error');
+                setTimeout(() => window.location.href = 'dashboard.html', 2000);
+                return;
+            }
             try {
                 const res = await fetchWithAuth(`/api/projects/${projectId}`);
                 if (!res.ok) throw new Error("Project not found");
@@ -271,9 +276,11 @@
                         if (line.startsWith('data: ')) {
                             const dataStr = line.replace('data: ', '').trim();
                             if (dataStr === '[DONE]') {
-                                await loadCheckins();
-                                window.location.href = 'dashboard.html';
-                                break;
+                                    await loadCheckins();
+                                    showToast('Review Complete! ✅', 'Your AI mentor has finished reviewing your code.', 'success');
+                                    // Give user 3 seconds to see the feedback before redirect
+                                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 3000);
+                                    break;
                             } else {
                                 // FIXED: extract and display each chunk as it streams
                                 try {

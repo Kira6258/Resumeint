@@ -113,19 +113,20 @@
                                         <div style="font-weight: 800; color: var(--accent-gold); font-size: 0.7rem; margin-bottom: 4px; letter-spacing: 0.1em;">WEEK ${w.week}</div>
                                         <h3 style="font-size: 1.4rem; font-family: var(--font-display);">${w.goal}</h3>
                                     </div>
-                                    <span class="sticker-badge" style="background: var(--bg-tertiary); margin: 0;">${(progress[String(w.week)] || []).length}/${(w.milestones || []).length} COMPLETE</span>
+                                    <span id="week-badge-${w.week}" class="sticker-badge" style="background: var(--bg-tertiary); margin: 0;">${(progress[String(w.week)] || []).length}/${(w.milestones || []).length} COMPLETE</span>
                                 </div>
                                 <div style="display: grid; gap: var(--space-12);">
                                     ${(w.milestones || []).map((m, i) => {
                                         const isDone = (progress[String(w.week)] || []).includes(i);
                                         return `
-                                            <div class="card" 
+                                            <div id="milestone-${w.week}-${i}"
+                                                 class="milestone-card"
                                                  style="padding: 16px 20px; border-radius: var(--radius-md); background: ${isDone ? 'rgba(212, 162, 78, 0.05)' : 'var(--bg-tertiary)'}; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: var(--transition-fast);"
                                                  onclick="toggleMilestone(${w.week}, ${i}, ${!isDone})">
-                                                <div style="width: 20px; height: 20px; border: 2px solid ${isDone ? 'var(--accent-gold)' : 'var(--border-default)'}; border-radius: 6px; background: ${isDone ? 'var(--accent-gold)' : 'transparent'}; display: flex; align-items: center; justify-content: center;">
-                                                    ${isDone ? '<span style="color: #000; font-size: 12px; font-weight: 900;">✅</span>' : ''}
+                                                <div class="milestone-checkbox" style="flex-shrink:0; width: 20px; height: 20px; border: 2px solid ${isDone ? 'var(--accent-gold)' : 'var(--border-default)'}; border-radius: 6px; background: ${isDone ? 'var(--accent-gold)' : 'transparent'}; display: flex; align-items: center; justify-content: center; transition: var(--transition-fast);">
+                                                    ${isDone ? '<span style="color: #000; font-size: 12px; font-weight: 900;">\u2713</span>' : ''}
                                                 </div>
-                                                <span style="font-size: 0.95rem; color: ${isDone ? 'var(--text-tertiary)' : 'var(--text-primary)'}; ${isDone ? 'text-decoration: line-through;' : ''}">${formatText(m)}</span>
+                                                <span class="milestone-label" style="font-size: 0.95rem; color: ${isDone ? 'var(--text-tertiary)' : 'var(--text-primary)'}; ${isDone ? 'text-decoration: line-through;' : ''}">${formatText(m)}</span>
                                             </div>
                                         `;
                                     }).join('')}
@@ -156,15 +157,82 @@
             }
         }
         async function toggleMilestone(week, idx, done) {
+            // 1. Optimistic UI update — change the card instantly without a page reload
+            const cardId = `milestone-${week}-${idx}`;
+            const card = document.getElementById(cardId);
+            if (card) {
+                // Update card background
+                card.style.background = done ? 'rgba(212, 162, 78, 0.05)' : 'var(--bg-tertiary)';
+
+                // Update checkbox appearance
+                const checkbox = card.querySelector('.milestone-checkbox');
+                if (checkbox) {
+                    checkbox.style.borderColor = done ? 'var(--accent-gold)' : 'var(--border-default)';
+                    checkbox.style.background = done ? 'var(--accent-gold)' : 'transparent';
+                    checkbox.innerHTML = done ? '<span style="color:#000;font-size:12px;font-weight:900;">\u2713</span>' : '';
+                }
+
+                // Update text style
+                const label = card.querySelector('.milestone-label');
+                if (label) {
+                    label.style.color = done ? 'var(--text-tertiary)' : 'var(--text-primary)';
+                    label.style.textDecoration = done ? 'line-through' : 'none';
+                }
+
+                // Update the onclick to toggle the other way next time
+                card.onclick = () => toggleMilestone(week, idx, !done);
+            }
+
+            // 2. Update local progress state
+            if (!projectData.milestone_progress) projectData.milestone_progress = {};
+            const key = String(week);
+            if (!projectData.milestone_progress[key]) projectData.milestone_progress[key] = [];
+            const arr = projectData.milestone_progress[key];
+            if (done) {
+                if (!arr.includes(idx)) arr.push(idx);
+            } else {
+                const pos = arr.indexOf(idx);
+                if (pos > -1) arr.splice(pos, 1);
+            }
+
+            // 3. Update the week badge counter
+            const weekData = (projectData.roadmap_data || []).find(w => w.week === week);
+            if (weekData) {
+                const total = (weekData.milestones || []).length;
+                const completed = (projectData.milestone_progress[key] || []).length;
+                const badge = document.getElementById(`week-badge-${week}`);
+                if (badge) badge.textContent = `${completed}/${total} COMPLETE`;
+            }
+
+            // 4. Persist to server in background (no page reload)
             try {
-                await fetchWithAuth(`/api/projects/${projectData.id}/milestones`, {
+                const res = await fetchWithAuth(`/api/projects/${projectData.id}/milestones`, {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ week_number: week, milestone_index: idx, completed: done })
                 });
-                loadProject();
+                if (!res.ok) throw new Error('Server error');
             } catch (err) {
-                showToast("Error", "Failed to update milestone.", "error");
+                // Rollback optimistic update on failure
+                showToast("Error", "Failed to save milestone. Please try again.", "error");
+                // Revert local state
+                const arr2 = projectData.milestone_progress[String(week)] || [];
+                if (done) {
+                    const p = arr2.indexOf(idx); if (p > -1) arr2.splice(p, 1);
+                } else {
+                    if (!arr2.includes(idx)) arr2.push(idx);
+                }
+                // Revert card UI
+                if (card) {
+                    card.style.background = !done ? 'rgba(212, 162, 78, 0.05)' : 'var(--bg-tertiary)';
+                    const checkbox = card.querySelector('.milestone-checkbox');
+                    if (checkbox) {
+                        checkbox.style.borderColor = !done ? 'var(--accent-gold)' : 'var(--border-default)';
+                        checkbox.style.background = !done ? 'var(--accent-gold)' : 'transparent';
+                        checkbox.innerHTML = !done ? '<span style="color:#000;font-size:12px;font-weight:900;">\u2713</span>' : '';
+                    }
+                    card.onclick = () => toggleMilestone(week, idx, done); // restore original
+                }
             }
         }
         async function syncGitHub() {
