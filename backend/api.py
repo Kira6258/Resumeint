@@ -69,11 +69,8 @@ async def get_suggestions(
         if len(user_projects) >= 1:
             now = datetime.utcnow()
             if not current_user.subscription_expires_at or current_user.subscription_expires_at < now:
-                raise HTTPException(status_code=402, detail="Free limit reached (1 project). Please upgrade to Pro for more architectures.")
-    
-    # 2. Pro Tier Check (10 Projects)
-    elif len(user_projects) >= 10:
-        raise HTTPException(status_code=402, detail="Pro limit reached (10 projects). You have reached the maximum allowed architectures for your plan.")
+                raise HTTPException(status_code=402, detail="Free limit reached (1 project). Please upgrade to Pro for unlimited architectures.")
+    # Pro users: Unlimited — no cap
 
     syllabus_content = text_syllabus or ""
     if file:
@@ -138,11 +135,8 @@ async def create_project(
         if len(user_projects) >= 1:
             now = datetime.utcnow()
             if not current_user.subscription_expires_at or current_user.subscription_expires_at < now:
-                raise HTTPException(status_code=402, detail="Free limit reached. Upgrade to Pro for more projects.")
-    
-    # 2. Pro Tier Check
-    elif len(user_projects) >= 10:
-        raise HTTPException(status_code=402, detail="Pro limit reached (10 projects). You have reached the maximum allowed architectures.")
+                raise HTTPException(status_code=402, detail="Free limit reached. Upgrade to Pro for unlimited projects.")
+    # Pro users: Unlimited — no cap
 
     # 2. Call AI
     if selected_project:

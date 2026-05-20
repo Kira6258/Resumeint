@@ -17,8 +17,8 @@ client = razorpay.Client(auth=(os.getenv("RAZORPAY_KEY_ID", "NOT_SET"), os.geten
 
 # Plan config: amount in paise, duration in days
 PLANS = {
-    "monthly": {"amount": 5000,  "duration_days": 30,  "label": "Pro Monthly"},
-    "yearly":  {"amount": 55000, "duration_days": 365, "label": "Pro Yearly"},
+    "monthly": {"amount": 4900,  "duration_days": 30,  "label": "Pro Monthly"},
+    "yearly":  {"amount": 49900, "duration_days": 365, "label": "Pro Yearly"},
 }
 
 class CreateOrderRequest(BaseModel):
@@ -31,7 +31,7 @@ async def get_config():
 @router.post("/create-order")
 async def create_order(body: CreateOrderRequest, current_user=Depends(auth.get_current_user)):
     """
-    Creates a Razorpay order. Plan can be 'monthly' (₹50) or 'yearly' (₹550).
+    Creates a Razorpay order. Plan can be 'monthly' (₹49) or 'yearly' (₹499).
     """
     plan_key = body.plan if body.plan in PLANS else "monthly"
     plan = PLANS[plan_key]
@@ -82,8 +82,8 @@ async def verify_payment(request: Request, db: Session = Depends(get_db), curren
             db,
             current_user.id,
             tier="pro",
-            razorpay_cust_id=razorpay_payment_id,
-            razorpay_sub_id=razorpay_order_id,
+            razorpay_cust_id=f"pay_{razorpay_payment_id}",   # Store payment ID for audit trail
+            razorpay_sub_id=f"order_{razorpay_order_id}",    # Store order ID for audit trail
             expires_at=expires_at
         )
 

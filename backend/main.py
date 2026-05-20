@@ -21,6 +21,9 @@ from datetime import datetime, timedelta
 import secrets
 import httpx
 import asyncio
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -35,79 +38,88 @@ logging.basicConfig(level=logging.INFO)
 # Initialize DB tables and self-heal schema
 def heal_database():
     print("\033[90m[INFO] Verifying database schema...\033[0m")
+    # create_all is safe to call on existing DBs — only creates missing tables
     models.Base.metadata.create_all(bind=engine)
     
-    # Check for missing columns in users table
     from sqlalchemy import inspect, text
     inspector = inspect(engine)
-    columns = [col['name'] for col in inspector.get_columns('users')]
     
+    try:
+        columns = [col['name'] for col in inspector.get_columns('users')]
+    except Exception:
+        # Tables may not exist yet on a brand-new deployment — create_all above handles it
+        print("\033[92m[OK] Fresh database detected — tables created.\033[0m")
+        return
+
     with engine.connect() as conn:
+        # --- Users table patches ---
+        # NOTE: AFTER clause removed — not supported by PostgreSQL (columns added at end, which is fine)
         if 'reset_token' not in columns:
-            print("\033[94m[PATCH] Adding 'reset_token' column to users table...\033[0m")
-            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(255) UNIQUE AFTER subscription_expires_at"))
+            print("\033[94m[PATCH] Adding 'reset_token' column...\033[0m")
+            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR(255) UNIQUE"))
             conn.commit()
         if 'reset_token_expires' not in columns:
-            print("\033[94m[PATCH] Adding 'reset_token_expires' column to users table...\033[0m")
-            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires DATETIME AFTER reset_token"))
+            print("\033[94m[PATCH] Adding 'reset_token_expires' column...\033[0m")
+            conn.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires TIMESTAMP"))
             conn.commit()
         if 'bio' not in columns:
-            print("\033[94m[PATCH] Adding 'bio' column to users table...\033[0m")
+            print("\033[94m[PATCH] Adding 'bio' column...\033[0m")
             conn.execute(text("ALTER TABLE users ADD COLUMN bio TEXT"))
             conn.commit()
         if 'github_url' not in columns:
-            print("\033[94m[PATCH] Adding 'github_url' column to users table...\033[0m")
+            print("\033[94m[PATCH] Adding 'github_url' column...\033[0m")
             conn.execute(text("ALTER TABLE users ADD COLUMN github_url VARCHAR(512)"))
             conn.commit()
-            
-        # Razorpay Migration
         if 'razorpay_customer_id' not in columns:
-            print("\033[94m[PATCH] Adding 'razorpay_customer_id' column to users table...\033[0m")
+            print("\033[94m[PATCH] Adding 'razorpay_customer_id' column...\033[0m")
             conn.execute(text("ALTER TABLE users ADD COLUMN razorpay_customer_id VARCHAR(255) UNIQUE"))
             conn.commit()
         if 'razorpay_subscription_id' not in columns:
-            print("\033[94m[PATCH] Adding 'razorpay_subscription_id' column to users table...\033[0m")
+            print("\033[94m[PATCH] Adding 'razorpay_subscription_id' column...\033[0m")
             conn.execute(text("ALTER TABLE users ADD COLUMN razorpay_subscription_id VARCHAR(255) UNIQUE"))
             conn.commit()
-            
         if 'linkedin_url' not in columns:
-            print("\033[94m[PATCH] Adding 'linkedin_url' column to users table...\033[0m")
+            print("\033[94m[PATCH] Adding 'linkedin_url' column...\033[0m")
             conn.execute(text("ALTER TABLE users ADD COLUMN linkedin_url VARCHAR(512)"))
             conn.commit()
         if 'leetcode_url' not in columns:
-            print("\033[94m[PATCH] Adding 'leetcode_url' column to users table...\033[0m")
+            print("\033[94m[PATCH] Adding 'leetcode_url' column...\033[0m")
             conn.execute(text("ALTER TABLE users ADD COLUMN leetcode_url VARCHAR(512)"))
             conn.commit()
         if 'portfolio_url' not in columns:
-            print("\033[94m[PATCH] Adding 'portfolio_url' column to users table...\033[0m")
+            print("\033[94m[PATCH] Adding 'portfolio_url' column...\033[0m")
             conn.execute(text("ALTER TABLE users ADD COLUMN portfolio_url VARCHAR(512)"))
             conn.commit()
-            
-        # Check for missing columns in projects table
+
+        # --- Projects table patches ---
         project_columns = [col['name'] for col in inspector.get_columns('projects')]
         if 'milestone_progress' not in project_columns:
-            print("\033[94m[PATCH] Adding 'milestone_progress' column to projects table...\033[0m")
+            print("\033[94m[PATCH] Adding 'milestone_progress' column...\033[0m")
             conn.execute(text("ALTER TABLE projects ADD COLUMN milestone_progress JSON"))
             conn.commit()
-            
-        # Check for missing columns in check_ins table
+
+        # --- Check-ins table patches ---
         checkin_columns = [col['name'] for col in inspector.get_columns('check_ins')]
         if 'status' not in checkin_columns:
-            print("\033[94m[PATCH] Adding 'status' column to check_ins table...\033[0m")
+            print("\033[94m[PATCH] Adding 'status' column to check_ins...\033[0m")
+            # Use standard SQL quoting for DEFAULT value (works on MySQL + PostgreSQL)
             conn.execute(text("ALTER TABLE check_ins ADD COLUMN status VARCHAR(50) DEFAULT 'pending'"))
             conn.commit()
-            
-        # Force cascade delete patch for SQLite/MySQL (dropping and recreating constraint is hard, so we just ensure it's handled in ORM or try a simple drop if MySQL)
-        # Actually, let's try a safer way: just make sure SQLAlchemy ORM handles it (which I already did with cascade="all, delete-orphan").
-        # If it's still failing, it might be that the DB is SQLite and doesn't enforce FK by default.
+
+        # SQLite-only foreign key enforcement
         if engine.name == 'sqlite':
             conn.execute(text("PRAGMA foreign_keys = ON"))
-            
+
     print("\033[92m[OK] Database schema verified.\033[0m")
 
 heal_database()
 
+# Rate limiter — keyed by client IP address
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(title="Resumeint API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # --- Keep-Alive / Self-Ping Logic ---
 @app.on_event("startup")
@@ -147,7 +159,8 @@ app.add_middleware(SessionMiddleware, secret_key=os.getenv("JWT_SECRET", "sessio
 
 # 1. Authentication Routes
 @app.post("/auth/register")
-async def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")  # Max 5 registrations per IP per minute
+async def register(request: Request, user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, user.email)
     if db_user:
         # Use 409 Conflict for existing resource
@@ -161,7 +174,8 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @app.post("/auth/login")
-async def login(login_data: schemas.LoginRequest, response: Response, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")  # Max 10 login attempts per IP per minute (brute-force protection)
+async def login(request: Request, login_data: schemas.LoginRequest, response: Response, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, login_data.email)
     if not db_user or not crud.verify_password(login_data.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -238,28 +252,29 @@ async def logout(response: Response):
     return {"message": "Successfully logged out"}
 
 @app.post("/auth/forgot-password")
-async def forgot_password(request: schemas.ForgotPasswordRequest, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, request.email)
+@limiter.limit("3/minute")  # Max 3 requests per IP per minute (prevents email spam)
+async def forgot_password(request: Request, request_body: schemas.ForgotPasswordRequest, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_email(db, request_body.email)
     if not db_user:
         # Don't reveal user existence
         return {"message": "If this email exists, a reset link has been sent."}
     
     token = secrets.token_urlsafe(32)
     expires_at = datetime.utcnow() + timedelta(hours=1)
-    crud.set_user_reset_token(db, request.email, token, expires_at)
+    crud.set_user_reset_token(db, request_body.email, token, expires_at)
     
     # Real Email Sending
     reset_url = f"{os.getenv('BASE_URL', 'http://127.0.0.1:8000')}/reset-password.html?token={token}"
     email_body = f"Hello,\n\nYou requested a password reset for your Resumeint account. Click the link below to set a new password:\n\n{reset_url}\n\nThis link will expire in 1 hour.\n\nIf you did not request this, please ignore this email."
     
     from email_service import send_real_email
-    success = send_real_email(request.email, "Reset your Resumeint password", email_body)
+    success = send_real_email(request_body.email, "Reset your Resumeint password", email_body)
     
     if not success:
         # Fallback to mock for dev visibility if real fails
         print(f"\033[93m[FALLBACK] Real email failed, logging reset link: {reset_url}\033[0m")
         mock_emails.append({
-            "to": request.email,
+            "to": request_body.email,
             "url": reset_url,
             "timestamp": datetime.now().isoformat()
         })
@@ -287,6 +302,9 @@ app.include_router(payments_router, prefix="/api/payments")
 app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
 
 if __name__ == "__main__":
-    # Use 127.0.0.1 as the host for more reliable cookie handling
-    print("\033[94m[INFO] Project will be served at: \033[96mhttp://127.0.0.1:8000\033[0m")
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    # Use 0.0.0.0 to accept connections from any interface (required for cloud deploys like Render)
+    # For local dev, the app is still accessible at http://127.0.0.1:8000
+    port = int(os.getenv("PORT", 8000))
+    is_dev = os.getenv("ENV", "development") != "production"
+    print(f"\033[94m[INFO] Project will be served at: \033[96mhttp://0.0.0.0:{port}\033[0m")
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=is_dev)

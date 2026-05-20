@@ -42,7 +42,7 @@ GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/google/callback
 ---
 
 ### 3. Razorpay Keys (REQUIRED for Payments)
-> **Used for:** Pro plan subscriptions (₹50/month or ₹550/year)
+> **Used for:** Pro plan subscriptions (₹49/month or ₹499/year)
 
 **How to get it:**
 1. Go to → https://dashboard.razorpay.com/

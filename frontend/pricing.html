@@ -46,7 +46,7 @@
                     <input type="checkbox" id="billing-toggle">
                     <span class="slider round"></span>
                 </label>
-                <span class="toggle-label" id="label-yearly">Yearly <span class="save-badge">Save ₹50</span></span>
+                <span class="toggle-label" id="label-yearly">Yearly <span class="save-badge">Save ₹89</span></span>
             </div>
         </header>
         <section class="pricing-section animate-fade-in stagger-1">
@@ -75,7 +75,7 @@
                     <div class="popular-badge">MOST POPULAR</div>
                     <div class="plan-header">
                         <div class="plan-name" style="color:var(--accent-gold);">Architect Pro</div>
-                        <div class="plan-price" id="pro-price">₹50<span class="price-period"
+                        <div class="plan-price" id="pro-price">₹49<span class="price-period"
                                 id="pro-period">/month</span></div>
                         <p class="plan-desc">Full suite for serious builders.</p>
                     </div>
@@ -171,11 +171,11 @@
         function updatePricing() {
             const isYearly = billingToggle.checked;
             if (isYearly) {
-                proPrice.innerHTML = '₹550<span class="price-period">/year</span>';
+                proPrice.innerHTML = '₹499<span class="price-period">/year</span>';
                 labelYearly.classList.add('active');
                 labelMonthly.classList.remove('active');
             } else {
-                proPrice.innerHTML = '₹50<span class="price-period">/month</span>';
+                proPrice.innerHTML = '₹49<span class="price-period">/month</span>';
                 labelMonthly.classList.add('active');
                 labelYearly.classList.remove('active');
             }
