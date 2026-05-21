@@ -112,7 +112,6 @@ def heal_database():
 
     print("\033[92m[OK] Database schema verified.\033[0m")
 
-heal_database()
 
 # Rate limiter — keyed by client IP address
 limiter = Limiter(key_func=get_remote_address)
@@ -121,27 +120,32 @@ app = FastAPI(title="Resumeint API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# --- Keep-Alive / Self-Ping Logic ---
+# --- Startup: DB Init + Keep-Alive ---
 @app.on_event("startup")
-async def self_ping():
-    """Background task to ping itself to stay awake on free tiers."""
+async def on_startup():
+    # 1. Initialize / heal the database schema
+    try:
+        heal_database()
+    except Exception as e:
+        print(f"\033[91m[STARTUP ERROR] Database init failed: {e}\033[0m")
+        print("\033[93m[WARNING] App is running but DB may not be ready. Check DATABASE_URL env var.\033[0m")
+
+    # 2. Self-ping to stay awake on Render free tier
     base_url = os.getenv("BASE_URL")
     if not base_url or "127.0.0.1" in base_url or "localhost" in base_url:
         return
-        
+
     print(f"\033[94m[SYSTEM] Starting self-ping task for: {base_url}\033[0m")
     async def ping_loop():
         while True:
-            # Ping every 10 minutes (Render sleep is 15 mins)
-            await asyncio.sleep(600) 
+            await asyncio.sleep(600)  # Ping every 10 minutes
             try:
                 async with httpx.AsyncClient() as client:
-                    # Ping the docs or a simple root endpoint
                     await client.get(f"{base_url}/")
                     print(f"\033[90m[PING] Keep-alive ping sent to {base_url}\033[0m")
             except Exception as e:
                 print(f"\033[91m[PING ERROR] {e}\033[0m")
-                
+
     asyncio.create_task(ping_loop())
 
 
