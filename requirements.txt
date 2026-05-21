@@ -3,9 +3,12 @@ uvicorn>=0.30.1
 httpx>=0.27.0
 sqlalchemy>=2.0.30
 pymysql>=1.1.0
-psycopg2-binary>=2.9.0  # For Render PostgreSQL (free tier)
+psycopg2-binary>=2.9.0
 pydantic>=2.7.4
 email-validator>=2.0.0
+
+# Session middleware dependency (REQUIRED — do not remove)
+itsdangerous>=2.1.2
 
 # AI Services
 requests
