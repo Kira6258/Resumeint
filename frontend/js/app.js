@@ -381,11 +381,18 @@ async function openRazorpay(plan, onSuccess) {
             return;
         }
 
+        // Determine plan amount in paise
+        const amount = plan === 'yearly' ? 49900 : 4900;
+
         // 2. Create order on backend
-        const orderRes = await fetchWithAuth('/api/payments/create-order', {
+        const orderRes = await fetchWithAuth('/api/create-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ plan })
+            body: JSON.stringify({
+                amount: amount,
+                currency: 'INR',
+                receipt: `receipt_${plan}`
+            })
         });
 
         if (!orderRes.ok) {
@@ -395,6 +402,7 @@ async function openRazorpay(plan, onSuccess) {
         }
 
         const order = await orderRes.json();
+        const orderId = order.order_id || order.id;
 
         // 3. Open Razorpay checkout
         const options = {
@@ -402,19 +410,19 @@ async function openRazorpay(plan, onSuccess) {
             amount: order.amount,
             currency: order.currency || 'INR',
             name: 'Resumeint',
-            description: order.plan_label || `Pro ${plan} Plan`,
-            order_id: order.id,
+            description: `Architect Pro ${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan`,
+            order_id: orderId,
             theme: { color: '#D4A24E' },
             handler: async function (response) {
                 try {
-                    const verifyRes = await fetchWithAuth('/api/payments/verify', {
+                    const verifyRes = await fetchWithAuth('/api/verify-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_signature: response.razorpay_signature,
-                            plan: order.plan || plan
+                            plan: plan
                         })
                     });
 
@@ -424,7 +432,8 @@ async function openRazorpay(plan, onSuccess) {
                             setTimeout(onSuccess, 1200);
                         }
                     } else {
-                        showToast('Verification Failed', 'Payment received but verification failed. Contact support.', 'error');
+                        const err = await verifyRes.json();
+                        showToast('Verification Failed', err.detail || 'Payment received but verification failed. Contact support.', 'error');
                     }
                 } catch (err) {
                     showToast('Error', 'Verification request failed.', 'error');
@@ -438,6 +447,10 @@ async function openRazorpay(plan, onSuccess) {
         };
 
         const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+            console.error('Payment failed:', response.error);
+            showToast('Payment Failed', response.error.description || 'Payment transaction failed. Please try again.', 'error');
+        });
         rzp.open();
 
     } catch (err) {

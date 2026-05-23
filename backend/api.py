@@ -330,3 +330,103 @@ async def sync_github(project_id: int, db: Session = Depends(get_db), current_us
         print(f"Sync Error: {e}")
         raise HTTPException(status_code=500, detail="Failed to sync with GitHub")
 
+
+from pydantic import BaseModel
+
+class CreateOrderDirectRequest(BaseModel):
+    amount: int
+    currency: str = "INR"
+    receipt: Optional[str] = None
+
+class VerifyPaymentRequestDirect(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+    plan: Optional[str] = None
+
+@router.post("/create-order")
+async def create_order_direct(
+    body: CreateOrderDirectRequest,
+    current_user=Depends(auth.get_current_user)
+):
+    """
+    Creates a Razorpay order directly with given amount, currency, and receipt.
+    Amount must be in paise (minimum 100 paise).
+    """
+    if body.amount < 100:
+        raise HTTPException(status_code=400, detail="Amount must be at least 100 paise (₹1)")
+    
+    try:
+        from payments import client as razorpay_client
+        order_data = {
+            "amount": body.amount,
+            "currency": body.currency,
+            "receipt": body.receipt or f"receipt_{current_user.id}_{int(datetime.utcnow().timestamp())}",
+            "payment_capture": 1
+        }
+        order = razorpay_client.order.create(data=order_data)
+        return {
+            "order_id": order["id"],
+            "amount": order["amount"],
+            "currency": order["currency"]
+        }
+    except Exception as e:
+        print(f"Razorpay API Error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create payment order due to payment gateway error.")
+
+def verify_razorpay_signature(order_id: str, payment_id: str, signature: str, secret: str) -> bool:
+    import hmac
+    import hashlib
+    msg = f"{order_id}|{payment_id}".encode('utf-8')
+    generated = hmac.new(secret.encode('utf-8'), msg, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(generated, signature)
+
+@router.post("/verify-payment")
+async def verify_payment_direct(
+    body: VerifyPaymentRequestDirect,
+    db: Session = Depends(get_db),
+    current_user=Depends(auth.get_current_user)
+):
+    """
+    Verifies Razorpay payment signature and updates user subscription.
+    """
+    if not body.razorpay_order_id or not body.razorpay_payment_id or not body.razorpay_signature:
+        raise HTTPException(status_code=400, detail="Missing payment verification details")
+    
+    # 1. Signature Verification
+    secret = os.getenv("RAZORPAY_KEY_SECRET", "")
+    if not verify_razorpay_signature(body.razorpay_order_id, body.razorpay_payment_id, body.razorpay_signature, secret):
+        raise HTTPException(status_code=400, detail="Payment verification failed due to signature mismatch.")
+    
+    # 2. Complete subscription activation
+    days = 30
+    if body.plan == "yearly":
+        days = 365
+    else:
+        try:
+            from payments import client as razorpay_client
+            order = razorpay_client.order.fetch(body.razorpay_order_id)
+            if order and order.get("amount") == 49900:
+                days = 365
+        except Exception as e:
+            print(f"Failed to fetch order details from Razorpay: {e}. Defaulting to 30 days.")
+    
+    from datetime import datetime, timedelta
+    expires_at = datetime.utcnow() + timedelta(days=days)
+    
+    try:
+        crud.update_user_subscription(
+            db,
+            current_user.id,
+            tier="pro",
+            razorpay_cust_id=f"pay_{body.razorpay_payment_id}",
+            razorpay_sub_id=f"order_{body.razorpay_order_id}",
+            expires_at=expires_at
+        )
+        plan_label = "Pro Yearly" if days == 365 else "Pro Monthly"
+        return {"message": f"Payment verified — {plan_label} active!", "status": "success"}
+    except Exception as e:
+        print(f"Database Subscription Update Error: {e}")
+        raise HTTPException(status_code=500, detail="Payment verified, but failed to update subscription in database.")
+
+
