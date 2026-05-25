@@ -93,8 +93,30 @@
                         <button type="submit" class="btn btn-primary btn-glow" style="padding:14px 40px;">Save Changes</button>
                     </form>
                 </div>
+                <!-- Badges & Achievements Section -->
+                <div class="section-card animate-fade-in stagger-2" style="padding:var(--space-40); margin-top: var(--space-32);">
+                    <div style="display:flex;align-items:center;gap:var(--space-12);margin-bottom:var(--space-32);padding-bottom:var(--space-20);border-bottom:1px solid var(--border-muted);">
+                        <span style="font-size:1.25rem;">🏆</span>
+                        <h3 style="margin:0;font-family:var(--font-display);">Architect Achievements & Badges</h3>
+                    </div>
+                    
+                    <div style="display: flex; gap: var(--space-24); align-items: center; margin-bottom: var(--space-32); background: rgba(212, 162, 78, 0.04); border: 1.5px solid rgba(212, 162, 78, 0.2); border-radius: var(--radius-lg); padding: var(--space-24);">
+                        <div style="text-align: center; border-right: 1px solid var(--border-muted); padding-right: var(--space-28); flex-shrink: 0;">
+                            <div id="profile-xp-val" style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 900; color: var(--accent-gold); text-shadow: 0 0 15px rgba(212,162,78,0.2);">100</div>
+                            <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-top: 4px; font-weight: 800;">Total Skill XP</div>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0 0 4px 0; font-family: var(--font-display); font-size: 0.95rem;">Rank: Master Architect</h4>
+                            <p style="margin: 0; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">Earn more Skill Points by defending your projects in the Mock Interview room and scoring high weekly check-ins.</p>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-16);" id="profile-badges-container">
+                        <!-- Filled dynamically by updateProfileBadges() -->
+                    </div>
+                </div>
                 <!-- Danger Zone -->
-                <div class="danger-zone animate-fade-in stagger-2">
+                <div class="danger-zone animate-fade-in stagger-3">
                     <div class="danger-zone-header">
                         <span>⚠️</span>
                         <h3>Danger Zone</h3>
@@ -173,10 +195,24 @@
                 document.getElementById('link-linkedin').value = data.linkedin_url || '';
                 document.getElementById('link-leetcode').value = data.leetcode_url || '';
                 
-                document.getElementById('sidebar-name').innerText = data.name || 'Architect';
                 document.getElementById('sidebar-email').innerText = data.email;
                 document.getElementById('tier-badge-v2').innerText = data.subscription_tier.toUpperCase() + " ARCHITECT";
                 document.getElementById('avatar-circle').innerText = (data.name || 'U')[0].toUpperCase();
+
+                // Load local XP and Badges
+                const xp = parseInt(localStorage.getItem('Resumeint-xp') || '100');
+                const xpDisplay = document.getElementById('profile-xp-val');
+                if (xpDisplay) xpDisplay.innerText = xp;
+                
+                let isPassed = false;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('interview-passed-') && localStorage.getItem(key) === 'true') {
+                        isPassed = true;
+                        break;
+                    }
+                }
+                updateProfileBadges(xp, isPassed);
             } catch (err) {
                 showToast("Error", "Failed to retrieve profile data.", "error");
             }
@@ -210,9 +246,73 @@
                 btn.innerText = originalText;
             }
         });
+        function updateProfileBadges(xp, isPassed) {
+            const container = document.getElementById('profile-badges-container');
+            if (!container) return;
+
+            const badgeList = [
+                {
+                    name: 'Syllabus Master',
+                    desc: 'Roadmap built',
+                    emoji: '📜',
+                    unlocked: xp >= 100,
+                    style: 'linear-gradient(135deg, rgba(212,162,78,0.15) 0%, rgba(212,162,78,0.02) 100%)',
+                    border: 'rgba(212,162,78,0.3)'
+                },
+                {
+                    name: 'System Architect',
+                    desc: 'Reach 150+ XP',
+                    emoji: '🏗️',
+                    unlocked: xp >= 150,
+                    style: 'linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(76, 175, 80, 0.02) 100%)',
+                    border: 'rgba(76, 175, 80, 0.3)'
+                },
+                {
+                    name: 'DB Commander',
+                    desc: 'Reach 220+ XP',
+                    emoji: '🗄️',
+                    unlocked: xp >= 220,
+                    style: 'linear-gradient(135deg, rgba(33, 150, 243, 0.15) 0%, rgba(33, 150, 243, 0.02) 100%)',
+                    border: 'rgba(33, 150, 243, 0.3)'
+                },
+                {
+                    name: 'FAANG Approved',
+                    desc: 'Pass Grilling',
+                    emoji: '🎖️',
+                    unlocked: isPassed,
+                    style: 'linear-gradient(135deg, rgba(255, 193, 7, 0.2) 0%, rgba(255, 193, 7, 0.05) 100%)',
+                    border: 'rgba(255, 193, 7, 0.5)'
+                }
+            ];
+
+            container.innerHTML = badgeList.map(b => {
+                if (b.unlocked) {
+                    return `
+                        <div class="badge-item unlocked" style="background: ${b.style}; border: 1px solid ${b.border}; border-radius: var(--radius-md); padding: var(--space-16) var(--space-12); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: all 0.2s ease; cursor: pointer;">
+                            <div style="font-size: 1.8rem; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));">${b.emoji}</div>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);">${b.name}</div>
+                            <div style="font-size: 0.6rem; color: var(--text-secondary);">${b.desc}</div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="badge-item locked" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-16) var(--space-12); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; opacity: 0.3;">
+                            <div style="font-size: 1.6rem; filter: grayscale(100%); margin-bottom: 2px;">🔒</div>
+                            <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-tertiary);">${b.name}</div>
+                            <div style="font-size: 0.6rem; color: var(--text-tertiary);">${b.desc}</div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
         loadProfile();
     </script>
     <style>
+    .badge-item.unlocked:hover {
+        transform: translateY(-4px) scale(1.03);
+        box-shadow: 0 8px 24px rgba(212, 162, 78, 0.15) !important;
+    }
     @media (max-width: 768px) {
         .profile-grid { grid-template-columns: 1fr !important; }
         .danger-zone-content { flex-direction: column; align-items: flex-start; }

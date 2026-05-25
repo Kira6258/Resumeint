@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, BackgroundTasks, Response
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List
@@ -11,6 +11,7 @@ import crud
 import schemas
 import auth
 import ai_service
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -331,7 +332,7 @@ async def sync_github(project_id: int, db: Session = Depends(get_db), current_us
         raise HTTPException(status_code=500, detail="Failed to sync with GitHub")
 
 
-from pydantic import BaseModel
+
 
 class CreateOrderDirectRequest(BaseModel):
     amount: int
@@ -428,5 +429,316 @@ async def verify_payment_direct(
     except Exception as e:
         print(f"Database Subscription Update Error: {e}")
         raise HTTPException(status_code=500, detail="Payment verified, but failed to update subscription in database.")
+
+
+@router.post("/resume/analyze")
+async def analyze_resume(
+    target_role: str = Form(...),
+    file: UploadFile = File(...),
+    current_user = Depends(auth.get_current_user)
+):
+    """
+    Endpoint to upload a resume and analyze it for a target role using AI.
+    """
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    filename = file.filename.lower()
+    extracted_text = ""
+
+    try:
+        if filename.endswith(".pdf"):
+            extracted_text = await ai_service.extract_text_from_pdf(content)
+        elif filename.endswith(".docx"):
+            extracted_text = await ai_service.extract_text_from_docx(content)
+        elif filename.endswith(".txt"):
+            extracted_text = content.decode("utf-8", errors="ignore")
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Unsupported file format. Please upload a PDF, DOCX, or TXT file."
+            )
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Error parsing resume file: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to parse resume: {str(e)}"
+        )
+
+    if not extracted_text or len(extracted_text.strip()) < 50:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not extract enough text from the resume. Please ensure it contains readable text."
+        )
+
+    analysis = await ai_service.analyze_resume_ats(extracted_text, target_role)
+    
+    if "error" in analysis:
+        raise HTTPException(status_code=500, detail=analysis["error"])
+        
+    return analysis
+
+
+class MockInterviewChatRequest(BaseModel):
+    history: List[dict]
+
+@router.post("/projects/{project_id}/interview/chat")
+async def mock_interview_chat(
+    project_id: int,
+    body: MockInterviewChatRequest,
+    db: Session = Depends(get_db),
+    current_user = Depends(auth.get_current_user)
+):
+    """
+    Handles conversational mock interview turns with streaming responses from the AI.
+    """
+    project = crud.get_project(db, project_id)
+    if not project or project.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    checkins = crud.get_project_checkins(db, project_id)
+    checkins_list = []
+    for c in checkins:
+        checkins_list.append({
+            "week_number": c.week_number,
+            "ai_feedback": c.ai_feedback or "",
+            "status": c.status or "pending"
+        })
+
+    async def generate_chat():
+        async for chunk in ai_service.stream_mock_interview(
+            project_title=project.title,
+            schema=project.mysql_schema_sql,
+            repo=project.repo_structure_data,
+            checkins=checkins_list,
+            history=body.history
+        ):
+            yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(generate_chat(), media_type="text/event-stream")
+
+
+@router.get("/projects/{project_id}/scaffold")
+async def scaffold_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(auth.get_current_user)
+):
+    """
+    Generates a pre-configured ZIP archive of the project's folder structure,
+    starter boilerplate code, custom database schema, and active roadmap.
+    """
+    project = crud.get_project(db, project_id)
+    if not project or project.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    import io
+    import zipfile
+
+    # Create in-memory zip file
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        # 1. Add MySQL DDL Schema
+        schema_sql = project.mysql_schema_sql or ""
+        zip_file.writestr("schema.sql", schema_sql)
+
+        # 2. Add an elite README
+        readme_content = f"""# {project.title}
+
+Generated via **Resumeint** — The Architectural Standard for Learning.
+
+## 🎓 Course Alignment
+This project aligns directly with the curriculum for **{project.course_name}**.
+
+## 🛠️ Tech Stack & Database
+- **Database:** MySQL (See [schema.sql](./schema.sql) for schema definitions)
+- **Folder Structure:** See the structured packages inside this repository.
+
+## 📁 Repository Map
+"""
+        # Append repo tree structure to README
+        structure = project.repo_structure_data or {}
+        for folder, files in structure.items():
+            readme_content += f"- **{folder}/**\n"
+            for f in files:
+                readme_content += f"  - `{f}`\n"
+
+        readme_content += "\n## 📋 AI Implementation Roadmap\n"
+        if project.roadmap_data and isinstance(project.roadmap_data, list):
+            for w in project.roadmap_data:
+                readme_content += f"\n### Week {w.get('week')}: {w.get('goal')}\n"
+                readme_content += f"**Core Deliverable:** {w.get('deliverable')}\n"
+                readme_content += "**Milestones:**\n"
+                for m in w.get("milestones", []):
+                    readme_content += f"- [ ] {m}\n"
+                readme_content += "**Mentor Hints:**\n"
+                for h in w.get("hints", []):
+                    readme_content += f"- *{h}*\n"
+        else:
+            readme_content += "No active roadmap found."
+
+        zip_file.writestr("README.md", readme_content)
+
+        # 3. Add .env.example
+        env_content = f"""# {project.title} Environment Variables
+DATABASE_URL=mysql+pymysql://root:password@localhost:3306/{project.title.replace(' ', '_').lower()}
+PORT=8000
+DEBUG=True
+"""
+        zip_file.writestr(".env.example", env_content)
+
+        # 4. Determine package/dependency manifest based on file extensions
+        has_python = False
+        has_js = False
+        for folder, files in structure.items():
+            for f in files:
+                if f.endswith(".py"):
+                    has_python = True
+                if f.endswith(".js") or f.endswith(".json"):
+                    has_js = True
+
+        if has_python:
+            requirements = "fastapi>=0.95.0\nuvicorn>=0.20.0\nsqlalchemy>=2.0.0\npymysql>=1.0.0\npydantic>=2.0.0\nrequests>=2.28.0\n"
+            zip_file.writestr("requirements.txt", requirements)
+
+        if has_js:
+            package_json = {
+                "name": project.title.replace(" ", "-").lower(),
+                "version": "1.0.0",
+                "description": f"Scaffolded workspace for {project.title}",
+                "main": "index.js",
+                "scripts": {
+                    "start": "node index.js",
+                    "dev": "nodemon index.js"
+                },
+                "dependencies": {
+                    "express": "^4.18.2",
+                    "dotenv": "^16.0.3"
+                }
+            }
+            zip_file.writestr("package.json", json.dumps(package_json, indent=2))
+
+        # 5. Build physical folders and files with custom starters
+        for folder, files in structure.items():
+            for filename in files:
+                path = f"{folder}/{filename}"
+                content = ""
+                
+                # Dynamic Boilerplates
+                if filename.endswith(".py"):
+                    content = f"""# {filename}
+# Scaffolded starter code for {project.title}
+import os
+import sys
+
+def main():
+    print("Initializing {project.title} - {folder}/{filename} starter module.")
+    # TODO: Implement your application logic here
+    
+if __name__ == "__main__":
+    main()
+"""
+                elif filename.endswith(".html"):
+                    content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{project.title} - {filename}</title>
+    <style>
+        body {{
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0d0e11;
+            color: #e4e6eb;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }}
+        .card {{
+            background: #1a1c23;
+            border: 1px solid #2d313f;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        }}
+        h1 {{ color: #d4a24e; margin-top: 0; }}
+        code {{ background: #2d313f; padding: 4px 8px; border-radius: 4px; }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>{project.title}</h1>
+        <p>Starter HTML file scaffolded successfully at <code>{folder}/{filename}</code>.</p>
+        <p>Start editing this file to build your application interface!</p>
+    </div>
+</body>
+</html>
+"""
+                elif filename.endswith(".css"):
+                    content = f"""/* {filename} - Baseline reset and CSS variables */
+:root {{
+    --bg-primary: #0d0e11;
+    --bg-secondary: #161821;
+    --text-primary: #e4e6eb;
+    --text-secondary: #9ea3b0;
+    --accent: #d4a24e;
+    --border: #2d313f;
+}}
+
+* {{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}}
+
+body {{
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}}
+"""
+                elif filename.endswith(".js"):
+                    content = f"""// {filename} - Asynchronous modular ES6 starter logic
+console.log("{project.title} - {folder}/{filename} initialized.");
+
+async function initializeApp() {{
+    try {{
+        console.log("Loading module resources...");
+    }} catch (error) {{
+        console.error("Failed to load application modules:", error);
+    }}
+}}
+
+document.addEventListener("DOMContentLoaded", initializeApp);
+"""
+                else:
+                    content = f"# {filename}\n# Placeholder for {project.title} -> {folder}\n"
+
+                zip_file.writestr(path, content)
+
+    # Reset buffer position
+    zip_buffer.seek(0)
+    
+    # Generate clean, standard filename
+    clean_title = "".join(c if c.isalnum() else "-" for c in project.title).lower()
+    filename = f"{clean_title}-scaffold.zip"
+
+    
+    return Response(
+        content=zip_buffer.getvalue(),
+        media_type="application/x-zip-compressed",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+
 
 

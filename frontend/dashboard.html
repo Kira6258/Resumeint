@@ -18,6 +18,7 @@
                 <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
                 <div class="nav-links-wrapper" id="mobile-menu">
                     <a href="dashboard.html" class="nav-link active" id="nav-dashboard">Dashboard</a>
+                    <a href="resume-analyser.html" class="nav-link" id="nav-analyzer">Resume Analyzer</a>
                     <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
                     <a href="pricing.html" class="nav-link">Pricing</a>
                 </div>
@@ -99,6 +100,15 @@
                 </div>
                 <button id="upgrade-btn" class="stat-upgrade-link" style="display: none;">Upgrade ↗</button>
             </div>
+            <div class="bento-card-compact">
+                <div class="stat-inner">
+                    <div class="stat-icon">🏆</div>
+                    <div>
+                        <div class="stat-label-v2">Skill Points (XP)</div>
+                        <div id="xp-points-val" class="stat-value-v2" style="color: var(--accent-gold);">100</div>
+                    </div>
+                </div>
+            </div>
         </div>
         <section class="dashboard-main-content animate-fade-in stagger-3">
             <div class="section-header-row">
@@ -154,6 +164,7 @@
                 }
                 document.getElementById('total-projects').innerText = projects.length;
                 document.getElementById('active-projects').innerText = projects.filter(p => p.status === 'active').length;
+                document.getElementById('xp-points-val').innerText = localStorage.getItem('Resumeint-xp') || '100';
                 // Overall progress calculation
                 let totalMastered = 0;
                 let totalPossible = 0;

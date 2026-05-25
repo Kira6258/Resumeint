@@ -166,7 +166,7 @@ async function fetchWithAuth(url, options = {}) {
 ========================================================= */
 
 // Pages that require login — redirect to login.html if no token
-const PROTECTED_PAGES = ['dashboard.html', 'upload.html', 'project.html', 'checkin.html', 'feedback.html', 'profile.html'];
+const PROTECTED_PAGES = ['dashboard.html', 'upload.html', 'project.html', 'checkin.html', 'feedback.html', 'profile.html', 'resume-analyser.html'];
 
 async function checkAuth() {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -179,7 +179,8 @@ async function checkAuth() {
         logout: document.getElementById('logout-btn'),
         auth: document.getElementById('auth-buttons'),
         dashboard: document.getElementById('nav-dashboard'),
-        newProject: document.getElementById('nav-new-project')
+        newProject: document.getElementById('nav-new-project'),
+        analyzer: document.getElementById('nav-analyzer')
     };
 
     if (!token) {
@@ -194,6 +195,7 @@ async function checkAuth() {
         if (elements.logout) elements.logout.classList.add('hidden');
         if (elements.dashboard) elements.dashboard.classList.add('hidden');
         if (elements.newProject) elements.newProject.classList.add('hidden');
+        if (elements.analyzer) elements.analyzer.classList.add('hidden');
         if (elements.auth) elements.auth.classList.remove('hidden');
         return;
     }
@@ -210,6 +212,7 @@ async function checkAuth() {
             if (elements.logout) elements.logout.classList.remove('hidden');
             if (elements.dashboard) elements.dashboard.classList.remove('hidden');
             if (elements.newProject) elements.newProject.classList.remove('hidden');
+            if (elements.analyzer) elements.analyzer.classList.remove('hidden');
             if (elements.auth) elements.auth.classList.add('hidden');
         } else {
             // Token invalid — clear and redirect if protected

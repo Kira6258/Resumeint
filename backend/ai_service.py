@@ -305,3 +305,152 @@ async def extract_text_from_pdf(content: bytes) -> str:
 async def extract_text_from_docx(content: bytes) -> str:
     doc = Document(io.BytesIO(content))
     return "\n".join([para.text for para in doc.paragraphs])
+
+
+async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, Any]:
+    """
+    Analyzes a candidate's resume against a target job role.
+    Returns structured suggestions, score, gap list, and bullet point improvements.
+    """
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key or api_key == "NOT_SET":
+        return {"error": "Google API Key is missing. Please update your .env file."}
+
+    prompt = f"""You are an elite, senior technical recruiter and ATS (Applicant Tracking System) specialist.
+    
+    Evaluate the following candidate's resume content against the target job role: "{target_role}".
+    Provide a highly objective, mathematical, and actionable ATS audit.
+    
+    CRITICAL INSTRUCTIONS:
+    - Target Role Alignment: Look for specific keywords, libraries, databases, architectures, and practices expected for a modern "{target_role}" candidate.
+    - Score out of 100: Be realistic but encouraging. 85+ is interview-ready, 70-85 is good but has gaps, <70 has significant technical gaps.
+    - STAR Bullet Improvements: Identify 3 bullet points in the resume that are weak, passive, or lack impact. Rewrite them using the STAR (Situation, Task, Action, Result) methodology. Provide the original, the improved version, and a brief 1-sentence rationale explaining why it is better.
+    - Gaps & Missing Skills: Highlight 4-6 specific technical skills (languages, frameworks, architectures, databases, or patterns) that are expected for a "{target_role}" but are missing or weak in their current resume.
+    - Strengths: Highlight 3 specific strong engineering achievements or positive traits present in the resume.
+    - Recommended Skill Fillers: Provide 2-3 gentle, non-mandatory, specific project suggestions or study focus areas they could build to naturally fill these gaps. Do NOT force or coerce them to build it, keep the language encouraging and professional.
+    
+    Resume Text:
+    {resume_text}
+    
+    Return ONLY valid JSON with this exact structure:
+    {{
+        "score": 74,
+        "role": "{target_role}",
+        "summary": "Brief 2-3 sentence overview of how well this resume aligns with the target role.",
+        "strengths": [
+            "Strength 1",
+            "Strength 2",
+            "Strength 3"
+        ],
+        "gaps": [
+            "Gap 1 (e.g. Missing relational database optimization keywords)",
+            "Gap 2",
+            "Gap 3"
+        ],
+        "bullet_improvements": [
+            {{
+                "original": "Worked on backend server tasks.",
+                "improved": "Engineered asynchronous FastAPI backend routes and normalized MySQL schemas, reducing server response times by 35%.",
+                "rationale": "Replaced passive phrasing with active technical verbs and quantified the impact with a measurable metric."
+            }}
+        ],
+        "suggested_projects": [
+            {{
+                "title": "Project Title suggestion",
+                "description": "Short 1-2 sentence description of a project that covers missing skills.",
+                "tech_stack": ["Tech1", "Tech2"]
+            }}
+        ]
+    }}
+    Ensure the JSON is strictly valid. Do not include any other text or markdown formatting outside of the JSON block.
+    """
+
+    raw = _call_gemini(prompt)
+    if raw is None:
+        return {"error": "All Gemini models failed. Please verify your API key."}
+
+    data = _parse_json(raw)
+    if data is None:
+        return {"error": "AI returned invalid JSON evaluation. Please try again."}
+
+    return data
+
+
+async def stream_mock_interview(project_title: str, schema: str, repo: dict, checkins: list, history: list) -> AsyncGenerator[str, None]:
+    """
+    Manages the mock interview state, evaluates responses, handles strikes,
+    and returns a streaming chat response.
+    """
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        yield "Error: No API key configured."
+        return
+
+    # Formulate recent checkins review summary for the AI
+    checkin_summary = ""
+    if checkins:
+        for idx, c in enumerate(checkins):
+            checkin_summary += f"- Week {c.get('week_number', idx+1)} (Status: {c.get('status', 'unknown')}): Feedback Summary: {c.get('ai_feedback', '')[:200]}...\n"
+    else:
+        checkin_summary = "No code check-ins completed yet."
+
+    # Parse state from history
+    strike_count = 0
+    question_count = 0
+    
+    # We ignore the very first greeting in some counts, but let's count all assistant messages as turns
+    for msg in history:
+        if msg.get("role") == "assistant":
+            content = msg.get("content", "")
+            if "[STRIKE]" in content:
+                strike_count += 1
+            question_count += 1
+
+    # Format history for Gemini context
+    chat_formatted = ""
+    for msg in history:
+        role = "Student (Candidate)" if msg.get("role") == "user" else "Interviewer (FAANG Lead)"
+        chat_formatted += f"{role}: {msg.get('content')}\n"
+
+    prompt = f"""You are a strict, elite FAANG Lead Software Engineer conducting a high-pressure technical mock interview.
+Your candidate is a student presenting their milestone project: "{project_title}".
+
+Project Technical Blueprint:
+- Folder structure & Repository layout: {json.dumps(repo or {})}
+- MySQL DDL Database Schema: {schema or "No relational database schema used."}
+- Candidate's Weekly Check-ins & Code Quality:
+{checkin_summary}
+
+---
+INTERVIEW STATE (Calculated):
+- Current Technical Questions Asked: {question_count}
+- Current Candidate Strikes: {strike_count} / 3
+---
+
+Interviewing Directives:
+1. Grill the student deeply on their system architecture, normalization decisions, potential scaling bottlenecks, race conditions, edge case validation, security holes, and choices of technologies.
+2. Ask ONE technical, challenging question at a time.
+3. Be professional, slightly tough but supportive, just like a real Senior FAANG engineer. Keep responses concise (under 120 words).
+4. Do NOT output long paragraphs. Use clear, direct sentences.
+5. Answer Verification & Strikes:
+   - Actively evaluate the student's last response.
+   - If their response is technically incorrect, evasive, complete nonsense (e.g. key-mashing "asdfasdf" or completely off-topic), or they admit they do not know, you MUST call them out on it and append `[STRIKE]` at the very end of your response text.
+   - If they answered exceptionally well, award them Skill Points by including `[XP: +X]` (X is 15 to 30 based on answer quality). Do not award XP if their answer was mediocre or had strikes.
+6. Termination Rule:
+   - If the student reaches 3 total strikes (i.e. strike_count + new strike == 3), you must immediately terminate the interview.
+   - State that the interview has failed due to insufficient technical knowledge, and append `[TERMINATED]` at the absolute end of your response. Do not ask any more questions.
+7. Completion Rule:
+   - If the candidate reaches 5 questions asked without hitting 3 strikes, you must successfully conclude the interview, congratulate them, give a brief technical summary of their strengths, and append `[PASSED]` at the absolute end of your response. Do not ask any more questions.
+8. Read the conversation history to avoid repeating your questions.
+
+Chat History:
+{chat_formatted}
+
+Provide your next response as the Interviewer. Speak directly as the interviewer, do not speak for the candidate."""
+
+    raw = _call_gemini(prompt)
+    if raw:
+        yield raw
+    else:
+        yield "Error: Mock interview engine offline."
+

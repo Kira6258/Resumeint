@@ -15,6 +15,7 @@
                 <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
                 <div class="nav-links-wrapper" id="mobile-menu">
                     <a href="dashboard.html" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="resume-analyser.html" class="nav-link" id="nav-analyzer">Resume Analyzer</a>
                     <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
                     <a href="pricing.html" class="nav-link">Pricing</a>
                 </div>
@@ -95,9 +96,10 @@
                         <h1 style="font-size: 2.5rem; font-family: var(--font-display); font-weight: 800;">${p.title}</h1>
                         <p style="color: var(--text-secondary); margin-top: 8px;">Architecting the next phase of your engineering portfolio.</p>
                     </div>
-                    <div style="display: flex; gap: var(--space-16);">
+                    <div style="display: flex; gap: var(--space-16); flex-wrap: wrap;">
                         <a href="checkin.html?id=${p.id}" class="btn btn-primary">📝 Weekly Check-in</a>
                         <button onclick="syncGitHub()" class="btn btn-outline">🐙 Sync GitHub</button>
+                        <button onclick="downloadScaffold()" class="btn btn-outline" style="border-color: var(--accent-gold); color: var(--accent-gold);">⚡ Download Workspace</button>
                     </div>
                 </header>
                 <div style="display: grid; grid-template-columns: 1fr 340px; gap: var(--space-48);" class="fade-up stagger-1">
@@ -139,9 +141,25 @@
                         `).join('')}
                     </div>
                     <div class="roadmap-sidebar stagger-2">
-                        <div class="bento-card fade-up" style="margin-bottom: var(--space-24); padding: var(--space-24);">
-                            <h4 style="font-family: var(--font-display); margin-bottom: var(--space-16); font-size: 1rem;">🗺️ System Architecture</h4>
-                            <pre style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); background: #000; padding: 16px; border-radius: 12px; border: 1px solid var(--border-muted); overflow-x: auto;">${JSON.stringify(p.repo_structure_data || {}, null, 2)}</pre>
+                        <div style="margin-bottom: var(--space-24);">
+                            <a href="interview.html?id=${p.id}" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; text-align: center; background: linear-gradient(135deg, var(--accent-gold) 0%, #f4d068 100%); color: #000; border: none; box-shadow: 0 4px 15px rgba(212,162,78,0.2); font-weight: 700; padding: 14px;">
+                                🎙️ Grill Me (Mock Interview)
+                            </a>
+                        </div>
+                        <div class="bento-card fade-up" style="margin-bottom: var(--space-24); padding: var(--space-24); min-height: 320px; display: flex; flex-direction: column;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-16); border-bottom: 1px solid var(--border-default); padding-bottom: 8px;">
+                                <h4 style="font-family: var(--font-display); font-size: 0.95rem; margin: 0; display: flex; align-items: center; gap: 6px;">🛠️ Blueprint Hub</h4>
+                                <div style="display: flex; gap: 4px;">
+                                    <button class="blueprint-tab-btn active" id="tab-btn-tree" onclick="switchBlueprintTab('tree')">📂 Tree</button>
+                                    <button class="blueprint-tab-btn" id="tab-btn-erd" onclick="switchBlueprintTab('erd')">🗄️ ERD</button>
+                                </div>
+                            </div>
+                            <div id="blueprint-tree-content" class="blueprint-panel active">
+                                ${renderRepoTree(p.repo_structure_data)}
+                            </div>
+                            <div id="blueprint-erd-content" class="blueprint-panel" style="display: none;">
+                                ${renderERD(p.mysql_schema_sql)}
+                            </div>
                         </div>
                         <div class="bento-card fade-up" style="padding: var(--space-24);">
                             <h4 style="font-family: var(--font-display); margin-bottom: var(--space-16); font-size: 1rem;">🧠 AI Mentor Tips</h4>
@@ -250,6 +268,227 @@
                 showToast("Error", "Sync failed. Check GitHub integration.", "error");
             }
         }
+        async function downloadScaffold() {
+            showToast("Workspace Scaffolder", "Generating pre-configured starter files...", "info");
+            try {
+                const token = localStorage.getItem('Resumeint-token');
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
+                const response = await fetch(`/api/projects/${projectData.id}/scaffold`, {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                if (!response.ok) {
+                    throw new Error("Generation failed");
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                
+                const cleanTitle = (projectData.title || 'project').toLowerCase().replace(/[^a-z0-9]/g, '-');
+                a.download = `${cleanTitle}-scaffold.zip`;
+                
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                showToast("Success", "Starter workspace ZIP downloaded! Ready to open in VS Code.", "success");
+            } catch (err) {
+                console.error("Scaffold Download Error:", err);
+                showToast("Error", "Failed to download starter workspace.", "error");
+            }
+        }
+        function switchBlueprintTab(tabName) {
+            const treeBtn = document.getElementById('tab-btn-tree');
+            const erdBtn = document.getElementById('tab-btn-erd');
+            const treeContent = document.getElementById('blueprint-tree-content');
+            const erdContent = document.getElementById('blueprint-erd-content');
+            
+            if (!treeBtn || !erdBtn || !treeContent || !erdContent) return;
+            
+            if (tabName === 'tree') {
+                treeBtn.classList.add('active');
+                erdBtn.classList.remove('active');
+                treeContent.style.display = 'block';
+                erdContent.style.display = 'none';
+            } else {
+                treeBtn.classList.remove('active');
+                erdBtn.classList.add('active');
+                treeContent.style.display = 'none';
+                erdContent.style.display = 'block';
+            }
+        }
+
+        window.switchBlueprintTab = switchBlueprintTab;
+
+        function toggleFolder(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.folder-arrow');
+            if (content.style.display === 'none') {
+                content.style.display = 'flex';
+                arrow.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                arrow.textContent = '▶';
+            }
+        }
+
+        window.toggleFolder = toggleFolder;
+
+        function renderRepoTree(repoData) {
+            if (!repoData || typeof repoData !== 'object' || Object.keys(repoData).length === 0) {
+                return `<p style="color:var(--text-tertiary); font-size:0.85rem; margin:0;">No repository structure available.</p>`;
+            }
+            let html = `<div class="tree-container" style="display: flex; flex-direction: column; gap: var(--space-8);">`;
+            for (const [folder, files] of Object.entries(repoData)) {
+                html += `
+                    <div class="tree-folder">
+                        <div class="tree-folder-header" onclick="toggleFolder(this)">
+                            <span class="folder-arrow">▼</span> 📁 <span class="folder-name">${folder}</span>
+                        </div>
+                        <div class="tree-folder-content">
+                            ${Array.isArray(files) && files.length > 0 ? files.map(file => `
+                                <div class="tree-file">📄 ${file}</div>
+                            `).join('') : `<div class="tree-file-empty" style="color:var(--text-tertiary); font-size:0.75rem; padding-left:24px;">empty</div>`}
+                        </div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            return html;
+        }
+
+        function parseSQL(sqlText) {
+            if (!sqlText) return [];
+            
+            const tables = [];
+            const createTableRegex = /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(\w+)\s*\(([\s\S]*?)\);/gi;
+            let match;
+            while ((match = createTableRegex.exec(sqlText)) !== null) {
+                const tableName = match[1];
+                const columnsText = match[2];
+                const columns = [];
+                const foreignKeys = [];
+                
+                const lines = [];
+                let currentLine = "";
+                let parenDepth = 0;
+                for (let i = 0; i < columnsText.length; i++) {
+                    const char = columnsText[i];
+                    if (char === '(') parenDepth++;
+                    else if (char === ')') parenDepth--;
+                    
+                    if (char === ',' && parenDepth === 0) {
+                        lines.push(currentLine.trim());
+                        currentLine = "";
+                    } else {
+                        currentLine += char;
+                    }
+                }
+                if (currentLine.trim()) {
+                    lines.push(currentLine.trim());
+                }
+                
+                for (let line of lines) {
+                    line = line.replace(/\s+/g, ' ').trim();
+                    if (!line) continue;
+                    
+                    if (/FOREIGN\s+KEY/i.test(line)) {
+                        const fkMatch = /FOREIGN\s+KEY\s*\(\s*(\w+)\s*\)\s*REFERENCES\s*(\w+)\s*\(\s*(\w+)\s*\)/i.exec(line);
+                        if (fkMatch) {
+                            foreignKeys.push({
+                                column: fkMatch[1],
+                                refTable: fkMatch[2],
+                                refColumn: fkMatch[3]
+                            });
+                        }
+                        continue;
+                    }
+                    if (/PRIMARY\s+KEY/i.test(line) && !line.includes('INT') && !line.includes('VARCHAR') && !line.includes('CHAR') && !line.includes('TEXT')) {
+                        continue;
+                    }
+                    
+                    const parts = line.split(' ');
+                    if (parts.length < 2) continue;
+                    
+                    const colName = parts[0].replace(/[`"']/g, '');
+                    const colType = parts[1];
+                    
+                    const isPk = /PRIMARY\s+KEY/i.test(line);
+                    const isNullable = !/NOT\s+NULL/i.test(line);
+                    const isUnique = /UNIQUE/i.test(line);
+                    
+                    columns.push({
+                        name: colName,
+                        type: colType,
+                        isPk: isPk,
+                        isNullable: isNullable,
+                        isUnique: isUnique,
+                        isFk: false,
+                        refTable: null,
+                        refColumn: null
+                    });
+                }
+                
+                for (let fk of foreignKeys) {
+                    const col = columns.find(c => c.name.toLowerCase() === fk.column.toLowerCase());
+                    if (col) {
+                        col.isFk = true;
+                        col.refTable = fk.refTable;
+                        col.refColumn = fk.refColumn;
+                    }
+                }
+                
+                tables.push({
+                    name: tableName.replace(/[`"']/g, ''),
+                    columns: columns
+                });
+            }
+            return tables;
+        }
+
+        function renderERD(sqlText) {
+            if (!sqlText || !sqlText.trim()) {
+                return `<p style="color:var(--text-tertiary); font-size:0.85rem; margin:0;">No SQL schema available for this architecture.</p>`;
+            }
+            const tables = parseSQL(sqlText);
+            if (tables.length === 0) {
+                return `<pre style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-gold); background: #000; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 0;">${sqlText}</pre>`;
+            }
+            
+            return `
+                <div class="erd-container" style="display: flex; flex-direction: column; gap: var(--space-16); max-height: 400px; overflow-y: auto;">
+                    ${tables.map(table => `
+                        <div class="erd-table-card" style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-16);">
+                            <div class="erd-table-header" style="font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; color: var(--accent-gold); border-bottom: 1px solid var(--border-muted); padding-bottom: var(--space-8); margin-bottom: var(--space-12); display: flex; align-items: center; gap: 6px;">
+                                🗄️ ${table.name}
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                ${table.columns.map(col => `
+                                    <div class="erd-column-row" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                                        <div class="erd-col-name" style="font-family: var(--font-mono); color: var(--text-primary); display: flex; align-items: center; gap: 4px;">
+                                            ${col.isPk ? '🔑' : (col.isFk ? '🔗' : '▫️')}
+                                            <span>${col.name}</span>
+                                            ${col.isPk ? '<span class="erd-badge erd-badge-pk" style="font-size: 0.6rem; font-weight: 800; padding: 1px 4px; border-radius: 3px; background: rgba(212, 162, 78, 0.15); color: var(--accent-gold); border: 1px solid rgba(212, 162, 78, 0.3);">PK</span>' : ''}
+                                            ${col.isFk ? `<span class="erd-badge erd-badge-fk" style="font-size: 0.6rem; font-weight: 800; padding: 1px 4px; border-radius: 3px; background: rgba(48, 144, 240, 0.15); color: #30b0ff; border: 1px solid rgba(48, 144, 240, 0.3);" title="FK to ${col.refTable}.${col.refColumn}">FK</span>` : ''}
+                                        </div>
+                                        <span class="erd-col-type" style="font-family: var(--font-mono); color: var(--text-tertiary);">${col.type}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
         loadProject();
     </script>
     <script>
@@ -265,6 +504,83 @@
         #project-container > div[style*="grid-template-columns"] { display: block !important; }
         #project-container > div > div:last-child { margin-top: var(--space-32); }
         #project-container header { flex-direction: column !important; align-items: flex-start !important; gap: var(--space-20) !important; }
+    }
+    
+    /* Blueprint Hub Styles */
+    .blueprint-tab-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 6px 12px;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        transition: all var(--transition-fast);
+    }
+    .blueprint-tab-btn:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .blueprint-tab-btn.active {
+        color: var(--accent-gold);
+        background: rgba(212, 162, 78, 0.08);
+    }
+    .blueprint-panel {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Tree folder styling */
+    .tree-folder {
+        margin-bottom: 4px;
+    }
+    .tree-folder-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+        transition: background 0.2s;
+    }
+    .tree-folder-header:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    .tree-folder-content {
+        margin-left: 12px;
+        border-left: 1px dashed var(--border-default);
+        padding-left: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 2px;
+    }
+    .tree-file {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        padding: 3px 8px;
+        border-radius: var(--radius-sm);
+    }
+    .tree-file:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.02);
+    }
+    .folder-arrow {
+        font-size: 0.6rem;
+        color: var(--text-tertiary);
+        width: 10px;
+        display: inline-block;
     }
     </style>
 </body>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Resume Analyzer — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="stylesheet" href="css/resume-analyser.css?v=1.0">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="resume-analyser.html" class="nav-link active" id="nav-analyzer">Resume Analyzer</a>
+                    <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-width-container" style="padding-top: var(--space-64); padding-bottom: var(--space-80);">
+        <header style="text-align: center; margin-bottom: var(--space-48);" class="fade-up">
+            <div class="sticker-badge gold" style="margin-bottom: var(--space-16);">Premium ATS Auditor</div>
+            <h1 style="font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 5vw, 2.8rem); margin-bottom: var(--space-12);">
+                Optimize Your <span class="gradient-text">Resume ATS Score</span>
+            </h1>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+                Analyze your technical profile against your target job role. Find core keyword gaps, formatting improvements, and strong STAR-method bullet points.
+            </p>
+        </header>
+
+        <div class="analyser-container fade-up">
+            <!-- Left: Sidebar controls -->
+            <div class="upload-sidebar">
+                <div class="bento-card">
+                    <h3 style="font-size: 1.1rem; margin-bottom: var(--space-20); display: flex; align-items: center; gap: 8px;">
+                        🎯 Technical Focus
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 0.7rem;">Target Job Role</label>
+                        <select id="target-role" class="form-input" style="width: 100%; background: var(--bg-primary);">
+                            <option value="Backend Engineer" selected>Backend Engineer (FastAPI, Python, SQL)</option>
+                            <option value="Full-Stack Developer">Full-Stack Developer (React, Node, SQL)</option>
+                            <option value="Frontend Developer">Frontend Developer (React, CSS, JS)</option>
+                            <option value="Database Specialist">Database Specialist (MySQL, Optimization, Schemas)</option>
+                            <option value="Data Engineer">Data Engineer (Python, Pipelines, ETL)</option>
+                            <option value="DevOps / Cloud Engineer">DevOps &amp; Cloud Systems (CI/CD, Docker)</option>
+                        </select>
+                    </div>
+
+                    <div style="margin: var(--space-20) 0; height: 1px; background: var(--border-default);"></div>
+
+                    <div id="drop-zone" class="analyzer-dropzone">
+                        <input type="file" id="resume-file" class="hidden" accept=".pdf,.doc,.docx,.txt">
+                        <div class="analyzer-dropzone-inner" onclick="document.getElementById('resume-file').click()">
+                            <div style="font-size: 2.2rem; margin-bottom: var(--space-8);">📄</div>
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">Click or Drag Resume</div>
+                            <div style="font-size: 0.75rem; color: var(--text-tertiary);">PDF, DOCX, or TXT up to 5MB</div>
+                        </div>
+                        <p id="file-name" style="margin-top: var(--space-12); color: var(--accent-gold); font-weight: 700; font-size: 0.8rem;"></p>
+                    </div>
+
+                    <button id="analyze-btn" class="btn btn-primary btn-glow" style="width: 100%; margin-top: var(--space-20); height: 50px;">
+                        Run ATS Audit
+                    </button>
+                </div>
+
+                <!-- Animated Rating Score Ring (Initially hidden) -->
+                <div id="score-card" class="bento-card score-card hidden">
+                    <div class="score-circle-wrapper">
+                        <svg class="score-circle-svg" viewBox="0 0 160 160">
+                            <circle class="score-circle-bg" cx="80" cy="80" r="70"></circle>
+                            <circle id="score-circle-fill" class="score-circle-fill" cx="80" cy="80" r="70"></circle>
+                        </svg>
+                        <div class="score-text-overlay">
+                            <span id="score-val" class="score-number">0</span>
+                            <span class="score-label">ATS Score</span>
+                        </div>
+                    </div>
+                    <div id="score-verdict" class="sticker-badge" style="background: rgba(212,162,78,0.06); font-weight: 700;">Analyzing Profile...</div>
+                </div>
+            </div>
+
+            <!-- Right: Results Panel -->
+            <div class="results-main">
+                <!-- Welcome/Placeholder State -->
+                <div id="placeholder-panel" class="bento-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; padding: var(--space-48);">
+                    <div style="font-size: 3.5rem; margin-bottom: var(--space-20);">🔍</div>
+                    <h2 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: var(--space-8);">Ready for Scan</h2>
+                    <p style="color: var(--text-secondary); max-width: 420px; font-size: 0.95rem; line-height: 1.6;">
+                        Upload your CV, select your target tech role, and click "Run ATS Audit" to receive instant visual evaluation feedback!
+                    </p>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loading-panel" class="bento-card hidden" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; padding: var(--space-48);">
+                    <div style="width: 44px; height: 44px; border: 3px solid var(--border-muted); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: var(--space-24);"></div>
+                    <h2 style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: var(--space-8);">Analyzing Resume...</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem;">Checking industry technical keywords and rewriting weak bullets.</p>
+                </div>
+
+                <!-- Results Output Dashboard -->
+                <div id="results-panel" class="hidden">
+                    <div class="analyzer-tabs">
+                        <button class="analyzer-tab-btn active" data-tab="summary-panel">Summary &amp; Highlights</button>
+                        <button class="analyzer-tab-btn" data-tab="skills-panel">Gaps &amp; Keywords</button>
+                        <button class="analyzer-tab-btn" data-tab="bullets-panel">STAR Bullet Refiner</button>
+                        <button class="analyzer-tab-btn" data-tab="paths-panel">Skill Fillers (Suggestions)</button>
+                    </div>
+
+                    <!-- Tab 1: Summary -->
+                    <div id="summary-panel" class="analyzer-panel active">
+                        <div class="bento-card" style="margin-bottom: var(--space-24);">
+                            <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: var(--space-12);">ATS Evaluator Summary</h3>
+                            <p id="summary-text" style="color: var(--text-secondary); font-size: 1rem; line-height: 1.7; margin: 0;"></p>
+                        </div>
+                        <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: var(--space-16);">Top Resume Strengths</h3>
+                        <ul class="highlights-list" id="strengths-list"></ul>
+                    </div>
+
+                    <!-- Tab 2: Missing skills -->
+                    <div id="skills-panel" class="analyzer-panel">
+                        <div class="bento-card" style="margin-bottom: var(--space-24);">
+                            <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: var(--space-8); display: flex; align-items: center; gap: 8px;">
+                                ⚠️ Missing Keyword Gaps
+                            </h3>
+                            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: var(--space-20); line-height: 1.5;">
+                                These core skills, frameworks, or database terms are missing or underrepresented in your resume based on requirements for a <span id="skills-role-name" style="color: var(--accent-gold); font-weight: 700;">Backend Engineer</span>:
+                            </p>
+                            <ul class="highlights-list" id="gaps-list"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Bullet improvements -->
+                    <div id="bullets-panel" class="analyzer-panel">
+                        <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: var(--space-12);">ATS-Optimized Bullet Replacements</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: var(--space-24);">
+                            Copy-paste these enhanced, STAR-method bullet points directly into your resume to replace weak, passive phrases with metric-driven actions:
+                        </p>
+                        <div id="bullets-list"></div>
+                    </div>
+
+                    <!-- Tab 4: Gentle roadmap suggestions -->
+                    <div id="paths-panel" class="analyzer-panel">
+                        <div class="bento-card" style="margin-bottom: var(--space-24);">
+                            <h3 style="font-family: var(--font-display); font-size: 1.15rem; margin-bottom: var(--space-8);">💡 Focus Areas &amp; Gaps Fillers</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: var(--space-20); line-height: 1.5;">
+                                Want to organically boost your ATS score? These are gentle, non-mandatory project ideas designed to help you naturally build and display these missing skills:
+                            </p>
+                            <div class="projects-grid" id="suggested-projects-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Store visual elements
+        const fileInput = document.getElementById('resume-file');
+        const fileNameDisp = document.getElementById('file-name');
+        const dropZone = document.getElementById('drop-zone');
+        const analyzeBtn = document.getElementById('analyze-btn');
+
+        // Drag and drop zone listener
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('active'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('active'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('active');
+            if (e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                fileNameDisp.innerText = `📎 Attached: ${e.dataTransfer.files[0].name}`;
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files[0]) fileNameDisp.innerText = `📎 Attached: ${fileInput.files[0].name}`;
+        });
+
+        // Tabs toggle code
+        document.querySelectorAll('.analyzer-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.analyzer-tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.analyzer-panel').forEach(p => p.classList.remove('active'));
+                
+                btn.classList.add('active');
+                const targetId = btn.getAttribute('data-tab');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // Backend click audit execution
+        analyzeBtn.addEventListener('click', async () => {
+            const role = document.getElementById('target-role').value;
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showToast("Missing File", "Please upload a resume file (.pdf, .docx, or .txt).", "warning");
+                return;
+            }
+
+            // UI view switching
+            document.getElementById('placeholder-panel').classList.add('hidden');
+            document.getElementById('results-panel').classList.add('hidden');
+            document.getElementById('score-card').classList.add('hidden');
+            document.getElementById('loading-panel').classList.remove('hidden');
+
+            const formData = new FormData();
+            formData.append('target_role', role);
+            formData.append('file', file);
+
+            try {
+                const res = await fetchWithAuth('/api/resume/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Audit execution failed');
+                }
+
+                const data = await res.json();
+                renderResults(data);
+                showToast("Audit Completed! ✅", "Your ATS score and optimizations are ready.", "success");
+            } catch (err) {
+                showToast("Audit Failed", err.message || "Something went wrong. Try again.", "error");
+                document.getElementById('placeholder-panel').classList.remove('hidden');
+                document.getElementById('loading-panel').classList.add('hidden');
+            }
+        });
+
+        function renderResults(data) {
+            // Hide loading panel and show results
+            document.getElementById('loading-panel').classList.add('hidden');
+            document.getElementById('results-panel').classList.remove('hidden');
+            
+            // Score circle updates
+            const scoreCard = document.getElementById('score-card');
+            scoreCard.classList.remove('hidden');
+            
+            const scoreVal = document.getElementById('score-val');
+            const scoreCircle = document.getElementById('score-circle-fill');
+            const verdictDisp = document.getElementById('score-verdict');
+            
+            // Animate score counter
+            const targetScore = parseInt(data.score) || 0;
+            let currentVal = 0;
+            const duration = 1500;
+            const stepTime = Math.max(Math.floor(duration / targetScore), 15);
+            
+            const timer = setInterval(() => {
+                currentVal++;
+                scoreVal.textContent = currentVal;
+                if (currentVal >= targetScore) {
+                    clearInterval(timer);
+                }
+            }, stepTime);
+
+            // Animate SVG stroke dashoffset (circumference is 2 * pi * r = 2 * 3.14 * 70 = ~440)
+            const circumference = 440;
+            const strokeOffset = circumference - (targetScore / 100) * circumference;
+            scoreCircle.style.strokeDashoffset = strokeOffset;
+
+            // Verdict coloring
+            if (targetScore >= 85) {
+                verdictDisp.innerText = "Excellent Match 💎";
+                verdictDisp.style.color = "var(--accent-green)";
+                scoreCircle.style.stroke = "var(--accent-green)";
+            } else if (targetScore >= 70) {
+                verdictDisp.innerText = "Good Profile ⚡";
+                verdictDisp.style.color = "var(--accent-gold)";
+                scoreCircle.style.stroke = "var(--accent-gold)";
+            } else {
+                verdictDisp.innerText = "Gaps Detected ⚠️";
+                verdictDisp.style.color = "var(--accent-red)";
+                scoreCircle.style.stroke = "var(--accent-red)";
+            }
+
+            // Tab 1: Summary and Strengths
+            document.getElementById('summary-text').textContent = data.summary || "Summary audit successfully generated.";
+            
+            const strengthsList = document.getElementById('strengths-list');
+            strengthsList.innerHTML = (data.strengths || []).map(str => `
+                <li class="highlight-item strength">
+                    <span class="highlight-icon">✨</span>
+                    <span class="highlight-text">${str}</span>
+                </li>
+            `).join('');
+
+            // Tab 2: Keyword Gaps
+            document.getElementById('skills-role-name').innerText = data.role || "Target Role";
+            const gapsList = document.getElementById('gaps-list');
+            gapsList.innerHTML = (data.gaps || []).map(gap => `
+                <li class="highlight-item gap">
+                    <span class="highlight-icon">⚡</span>
+                    <span class="highlight-text">${gap}</span>
+                </li>
+            `).join('');
+
+            // Tab 3: Bullet points optimization
+            const bulletsList = document.getElementById('bullets-list');
+            bulletsList.innerHTML = (data.bullet_improvements || []).map((b, idx) => `
+                <div class="refiner-card">
+                    <div class="bullet-comparison">
+                        <div class="bullet-box original">
+                            <div class="bullet-box-label">Original Description</div>
+                            <p class="bullet-text">${b.original}</p>
+                        </div>
+                        <div class="bullet-box improved">
+                            <div class="bullet-box-label">ATS-Optimized Version (STAR Method)</div>
+                            <p class="bullet-text" id="improved-bullet-${idx}">${b.improved}</p>
+                            <button class="btn-copy" onclick="copyBullet(${idx})" title="Copy to clipboard">📋</button>
+                        </div>
+                    </div>
+                    <div class="bullet-rationale">
+                        <strong>AI Rationale:</strong> ${b.rationale}
+                    </div>
+                </div>
+            `).join('');
+
+            // Tab 4: Gaps Filler suggestions
+            const projectsList = document.getElementById('suggested-projects-list');
+            projectsList.innerHTML = (data.suggested_projects || []).map(p => `
+                <div class="project-suggestion-card">
+                    <div>
+                        <h4 class="proj-title">${p.title}</h4>
+                        <p class="proj-desc">${p.description}</p>
+                    </div>
+                    <div class="proj-tech-stack">
+                        ${(p.tech_stack || []).map(t => `<span class="proj-tech-pill">${t}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Global Copy Helper
+        function copyBullet(index) {
+            const txt = document.getElementById(`improved-bullet-${index}`).innerText;
+            navigator.clipboard.writeText(txt).then(() => {
+                showToast("Copied! 📋", "Action bullet point copied to clipboard.", "success");
+            }).catch(() => {
+                showToast("Copy Failed", "Please manually highlight and copy the bullet.", "error");
+            });
+        }
+    </script>
+    <script>
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            const isOpen = menu.classList.toggle('active');
+            this.textContent = isOpen ? '✕' : '☰';
+        });
+    </script>
+</body>
+</html>

@@ -164,7 +164,20 @@
                     banner.className = 'fb-banner accepted';
                     document.getElementById('banner-emoji').innerText = '🎉';
                     document.getElementById('status-title').innerText = 'Week Accepted!';
-                    document.getElementById('status-desc').innerText = 'Great job — you met the requirements for this milestone.';
+                    document.getElementById('status-desc').innerText = 'Great job —  you met the requirements for this milestone.';
+                    
+                    // Award XP points for accepted check-in once
+                    const creditedStr = localStorage.getItem('Resumeint-credited-checkins') || '[]';
+                    let credited = [];
+                    try { credited = JSON.parse(creditedStr); } catch (e) {}
+                    if (!credited.includes(Number(checkinId))) {
+                        credited.push(Number(checkinId));
+                        localStorage.setItem('Resumeint-credited-checkins', JSON.stringify(credited));
+                        let currentXP = parseInt(localStorage.getItem('Resumeint-xp') || '100');
+                        currentXP += 100;
+                        localStorage.setItem('Resumeint-xp', currentXP);
+                        showToast("Weekly Sync Mastery! 🏆", "You earned +100 XP for completing this week's milestones!", "success");
+                    }
                 } else if (data.status === 'redo') {
                     statusBadge.innerText = 'Redo Required';
                     statusBadge.className = 'fb-status-pill redo';

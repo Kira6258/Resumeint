@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Interview Room — Resumeint</title>
+    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="stylesheet" href="css/interview.css?v=50.0">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+
+<body class="animate-in">
+    <nav class="glass-nav">
+        <div class="max-width-container nav-content">
+            <div class="nav-group">
+                <a href="index.html" class="logo">Resumeint</a>
+                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <div class="nav-links-wrapper" id="mobile-menu">
+                    <a href="dashboard.html" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="resume-analyser.html" class="nav-link" id="nav-analyzer">Resume Analyzer</a>
+                    <a href="upload.html" class="nav-link" id="nav-new-project">New Project</a>
+                    <a href="pricing.html" class="nav-link">Pricing</a>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <div id="auth-buttons" class="nav-auth-group hidden">
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                </div>
+                <a href="profile.html" class="nav-avatar-link">
+                    <div id="user-avatar" class="nav-avatar">U</div>
+                </a>
+                <a href="#" id="logout-btn" class="nav-link-danger">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main id="interview-container" class="max-width-container"
+        style="padding-top: var(--space-80); padding-bottom: var(--space-80);">
+        <!-- Content dynamically injected -->
+    </main>
+    <script src="js/app.js"></script>
+    <script>
+        let projectData = null;
+        let chatHistory = [];
+        let userXP = 100;
+
+        async function loadInterviewRoom() {
+            const container = document.getElementById('interview-container');
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:50vh; gap:24px;">
+                    <div style="width:40px; height:40px; border:3px solid var(--border-muted); border-top-color:var(--accent-gold); border-radius:50%; animation:spin 1s linear infinite;"></div>
+                    <p style="color:var(--text-secondary); font-family:var(--font-display);">Connecting with Interviewer...</p>
+                </div>
+            `;
+
+            try {
+                const id = new URLSearchParams(window.location.search).get('id');
+                if (!id) throw new Error("No project ID specified");
+
+                const res = await fetchWithAuth(`/api/projects/${id}`);
+                if (!res.ok) throw new Error("Failed to load project details");
+
+                projectData = await res.json();
+
+                // Initialize XP points
+                userXP = parseInt(localStorage.getItem('Resumeint-xp') || '100');
+
+                // Initialize Chat History
+                const initialGreeting = `Welcome candidate! I'm your Interviewer today. I've reviewed your architectural blueprint for "${projectData.title}" and your SQL database schema. Let's start the grilling: why did you choose this tech stack, and what database normalization strategy did you apply to prevent redundancy?`;
+                chatHistory = [
+                    { role: 'assistant', content: initialGreeting }
+                ];
+
+                renderInterviewRoom();
+            } catch (err) {
+                console.error("Load Interview Room Error:", err);
+                container.innerHTML = `
+                    <div style="text-align:center; padding:var(--space-80) var(--space-32);">
+                        <div style="font-size:3rem; margin-bottom:24px;">🚧</div>
+                        <h2 style="font-family:var(--font-display); margin-bottom:12px;">Room Offline</h2>
+                        <p style="color:var(--text-secondary); margin-bottom:32px;">${err.message || "We couldn't connect with the AI Interviewer."}</p>
+                        <a href="dashboard.html" class="btn btn-outline">Back to Command Center</a>
+                    </div>
+                `;
+                showToast("Error", "Could not initialize interview room.", "error");
+            }
+        }
+
+        function renderInterviewRoom() {
+            const p = projectData;
+            const container = document.getElementById('interview-container');
+
+            container.innerHTML = `
+                <header class="fade-up" style="margin-bottom: var(--space-48); display: flex; justify-content: space-between; align-items: flex-end;">
+                    <div>
+                        <div class="sticker-badge" style="margin-bottom: var(--space-16);">Mock Interview Room</div>
+                        <h1 style="font-size: 2.2rem; font-family: var(--font-display); font-weight: 800; margin:0;">Grilling: ${p.title}</h1>
+                        <p style="color: var(--text-secondary); margin-top: 8px;">Defend your design, answer deep architectural constraints, and earn XP.</p>
+                    </div>
+                    <div>
+                        <a href="project.html?id=${p.id}" class="btn btn-outline">🗂️ View Blueprint</a>
+                    </div>
+                </header>
+
+                <div class="interview-grid fade-up stagger-1">
+                    <div class="interview-sidebar">
+                        <div class="xp-card" id="xp-card-el" style="margin-bottom: var(--space-24);">
+                            <h4 style="font-family: var(--font-display); font-size: 0.95rem; margin:0; color: var(--text-primary);">Total Achievements</h4>
+                            <div class="xp-value-wrapper">
+                                <div class="xp-number" id="xp-display-val">${userXP}</div>
+                                <div class="xp-label">Skill Points (XP)</div>
+                            </div>
+                        </div>
+
+                        <!-- Strike Tracker Card -->
+                        <div class="bento-card" style="padding: var(--space-24); margin-bottom: var(--space-24);">
+                            <h4 style="font-family: var(--font-display); margin-bottom: var(--space-12); font-size: 0.95rem; display: flex; align-items: center; justify-content: space-between; margin-top: 0;">
+                                <span>🚨 Strike Tracker</span>
+                                <span id="strike-text" style="font-size: 0.75rem; font-weight: 800; color: var(--text-secondary);">0 / 3 STRIKES</span>
+                            </h4>
+                            <div style="display: flex; gap: var(--space-12); margin-top: 8px;">
+                                <div id="strike-dot-1" class="strike-dot" style="flex: 1; height: 8px; border-radius: 4px; background: var(--border-default); transition: all 0.3s ease;"></div>
+                                <div id="strike-dot-2" class="strike-dot" style="flex: 1; height: 8px; border-radius: 4px; background: var(--border-default); transition: all 0.3s ease;"></div>
+                                <div id="strike-dot-3" class="strike-dot" style="flex: 1; height: 8px; border-radius: 4px; background: var(--border-default); transition: all 0.3s ease;"></div>
+                            </div>
+                        </div>
+
+
+                        <div class="bento-card" style="padding: var(--space-24);">
+                            <h4 style="font-family: var(--font-display); margin-bottom: var(--space-16); font-size: 1rem; margin-top: 0;">📋 Candidate Profile</h4>
+                            <div style="display:flex; flex-direction:column; gap:12px; font-size:0.85rem;">
+                                <div>
+                                    <div style="color:var(--text-tertiary); text-transform:uppercase; font-size:0.65rem; font-weight:800;">Target Project</div>
+                                    <div style="color:var(--text-primary); font-weight:600; margin-top:2px;">${p.title}</div>
+                                </div>
+                                <div>
+                                    <div style="color:var(--text-tertiary); text-transform:uppercase; font-size:0.65rem; font-weight:800;">Related Course</div>
+                                    <div style="color:var(--text-secondary); margin-top:2px;">${p.course_name}</div>
+                                </div>
+                                <div>
+                                    <div style="color:var(--text-tertiary); text-transform:uppercase; font-size:0.65rem; font-weight:800;">Status</div>
+                                    <div id="interview-status" style="color:var(--accent-gold); font-weight:700; margin-top:2px; display:flex; align-items:center; gap:6px;">
+                                        <span style="width:6px; height:6px; background:var(--accent-gold); border-radius:50%;"></span>
+                                        Grilling In Progress
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="terminal-card">
+                        <div class="terminal-header">
+                            <div class="terminal-status">
+                                <div class="terminal-dot"></div>
+                                <span>Interviewer</span>
+                            </div>
+                            <div class="terminal-actions">
+                                <div class="terminal-action-dot"></div>
+                                <div class="terminal-action-dot"></div>
+                                <div class="terminal-action-dot"></div>
+                            </div>
+                        </div>
+
+                        <div class="chat-history" id="chat-history-container">
+                            <!-- Injected dynamically -->
+                        </div>
+
+                        <div class="chat-input-bar">
+                            <input type="text" id="chat-user-input" class="chat-input-field" placeholder="Defend your architectural design here..." onkeydown="handleInputKey(event)">
+                            <button id="chat-send-btn" class="btn-send" onclick="sendUserMessage()">Send Answer</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Render Initial Greeting Bubble
+            renderChatBubbles();
+
+            if (typeof initAnimations === 'function') {
+                initAnimations();
+            }
+        }
+
+        function addStrike() {
+            userStrikes++;
+            if (userStrikes > 3) userStrikes = 3;
+
+            // Update visual strike tracker dots
+            for (let i = 1; i <= 3; i++) {
+                const dot = document.getElementById(`strike-dot-${i}`);
+                if (dot) {
+                    if (i <= userStrikes) {
+                        dot.style.background = 'linear-gradient(90deg, #ff4d4d 0%, #ff1a1a 100%)';
+                        dot.style.boxShadow = '0 0 10px rgba(255, 77, 77, 0.6)';
+                    } else {
+                        dot.style.background = 'var(--border-default)';
+                        dot.style.boxShadow = 'none';
+                    }
+                }
+            }
+
+            const text = document.getElementById('strike-text');
+            if (text) {
+                text.textContent = `${userStrikes} / 3 STRIKES`;
+                text.style.color = '#ff4d4d';
+            }
+
+            // Shaking animation on the terminal card
+            const terminal = document.querySelector('.terminal-card');
+            if (terminal) {
+                terminal.classList.add('shake-terminal');
+                setTimeout(() => terminal.classList.remove('shake-terminal'), 500);
+            }
+
+            showToast("STRIKE INFLICTED! ⚠️", "The interviewer detected an incorrect, evasive, or nonsense answer.", "error");
+        }
+
+        function handleInterviewEnd(success) {
+            const terminal = document.querySelector('.terminal-card');
+            const inputField = document.getElementById('chat-user-input');
+            const sendBtn = document.getElementById('chat-send-btn');
+            const dot = terminal.querySelector('.terminal-dot');
+            const statusLabel = document.getElementById('interview-status');
+
+            if (inputField) inputField.disabled = true;
+            if (sendBtn) sendBtn.disabled = true;
+
+            if (dot) {
+                dot.style.background = success ? 'var(--accent-green)' : '#ff4d4d';
+                dot.style.animation = 'none';
+            }
+
+            if (statusLabel) {
+                if (success) {
+                    statusLabel.style.color = 'var(--accent-green)';
+                    statusLabel.innerHTML = `<span style="width:6px; height:6px; background:var(--accent-green); border-radius:50%;"></span>GRILLED: PASSED`;
+                } else {
+                    statusLabel.style.color = '#ff4d4d';
+                    statusLabel.innerHTML = `<span style="width:6px; height:6px; background:#ff4d4d; border-radius:50%;"></span>GRILLED: TERMINATED`;
+                }
+            }
+
+            if (success) {
+                localStorage.setItem(`interview-passed-${projectData.id}`, 'true');
+                showToast("CONGRATULATIONS! 🎖️", "You passed the FAANG Technical Interview!", "success");
+            } else {
+                showToast("INTERVIEW FAILED ❌", "You reached the limit of technical strikes.", "error");
+            }
+
+            // Create and append overlay cover inside terminal
+            const overlay = document.createElement('div');
+            overlay.className = 'terminal-overlay animate-fade-in';
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(13, 14, 17, 0.96);
+                backdrop-filter: blur(8px);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 100;
+                padding: 40px;
+                text-align: center;
+                border-radius: var(--radius-lg);
+                border: 1px solid ${success ? 'rgba(48,209,88,0.2)' : 'rgba(255,77,77,0.2)'};
+            `;
+
+            if (success) {
+                overlay.innerHTML = `
+                    <div style="font-size: 4rem; margin-bottom: 20px; animation: bounce 2s infinite;">🏆</div>
+                    <h2 style="font-family: var(--font-display); color: var(--accent-gold); font-size: 2.2rem; margin-bottom: 12px; font-weight: 800; text-shadow: 0 0 20px rgba(212, 162, 78, 0.3);">Interview Passed</h2>
+                    <p style="color: var(--text-secondary); max-width: 440px; font-size: 0.95rem; line-height: 1.6; margin-bottom: 32px;">
+                        Fantastic job! You successfully defended your system architecture and MySQL schema against rigorous FAANG lead constraints. The <strong>FAANG Approved</strong> badge has been unlocked!
+                    </p>
+                    <div style="display: flex; gap: 16px;">
+                        <a href="project.html?id=${projectData.id}" class="btn btn-primary" style="background: linear-gradient(135deg, var(--accent-gold) 0%, #f4d068 100%); color: #000; border: none; font-weight: 700; padding: 12px 24px;">🗂️ View Blueprint</a>
+                        <button onclick="window.location.reload()" class="btn btn-outline" style="padding: 12px 24px;">🔄 Restart Grilling</button>
+                    </div>
+                `;
+            } else {
+                overlay.innerHTML = `
+                    <div style="font-size: 4rem; margin-bottom: 20px;">💀</div>
+                    <h2 style="font-family: var(--font-display); color: #ff4d4d; font-size: 2.2rem; margin-bottom: 12px; font-weight: 800; text-shadow: 0 0 20px rgba(255, 77, 77, 0.3);">Grilling Terminated</h2>
+                    <p style="color: var(--text-secondary); max-width: 440px; font-size: 0.95rem; line-height: 1.6; margin-bottom: 32px;">
+                        The interviewer terminated the session. Your answers accumulated 3 technical strikes for insufficient depth or incorrect design justifications. Review your blueprint details and try again!
+                    </p>
+                    <div style="display: flex; gap: 16px;">
+                        <button onclick="window.location.reload()" class="btn btn-primary" style="background: linear-gradient(135deg, #ff4d4d 0%, #ff1a1a 100%); border: none; font-weight: 700; padding: 12px 24px;">🔄 Try Again</button>
+                        <a href="project.html?id=${projectData.id}" class="btn btn-outline" style="padding: 12px 24px;">🗂️ Study Blueprint</a>
+                    </div>
+                `;
+            }
+
+            terminal.style.position = 'relative';
+            terminal.appendChild(overlay);
+        }
+
+        function renderChatBubbles() {
+            const chatContainer = document.getElementById('chat-history-container');
+            if (!chatContainer) return;
+
+            chatContainer.innerHTML = chatHistory.map(msg => {
+                const isAssistant = msg.role === 'assistant';
+                const senderName = isAssistant ? "Interviewer" : "You (Candidate)";
+
+                // Hide raw tags from bubble text display
+                const displayText = msg.content
+                    .replace(/\[XP:\s*\+(\d+)\]/gi, '')
+                    .replace(/\[STRIKE\]/gi, '')
+                    .replace(/\[TERMINATED\]/gi, '')
+                    .replace(/\[PASSED\]/gi, '');
+
+                return `
+                    <div class="message-bubble ${msg.role}">
+                        <div class="message-sender">${senderName}</div>
+                        <div class="bubble-text-content">${formatText(displayText)}</div>
+                    </div>
+                `;
+            }).join('');
+
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function appendMessageBubble(role, content) {
+            const chatContainer = document.getElementById('chat-history-container');
+            if (!chatContainer) return;
+
+            const isAssistant = role === 'assistant';
+            const senderName = isAssistant ? "Interviewer" : "You (Candidate)";
+
+            const div = document.createElement('div');
+            div.className = `message-bubble ${role}`;
+            div.innerHTML = `
+                <div class="message-sender">${senderName}</div>
+                <div class="bubble-text-content">${formatText(content)}</div>
+            `;
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function handleInputKey(e) {
+            if (e.key === 'Enter') {
+                sendUserMessage();
+            }
+        }
+
+        async function sendUserMessage() {
+            const inputField = document.getElementById('chat-user-input');
+            const sendBtn = document.getElementById('chat-send-btn');
+            const chatContainer = document.getElementById('chat-history-container');
+            if (!inputField || !sendBtn || !inputField.value.trim()) return;
+
+            const text = inputField.value.trim();
+            inputField.value = '';
+
+            // Append User Message to history and UI
+            chatHistory.push({ role: 'user', content: text });
+            appendMessageBubble('user', text);
+
+            // Disable Inputs & show typing indicator
+            inputField.disabled = true;
+            sendBtn.disabled = true;
+
+            const typingIndicator = document.createElement('div');
+            typingIndicator.id = 'chat-typing-indicator';
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            chatContainer.appendChild(typingIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            try {
+                const res = await fetchWithAuth(`/api/projects/${projectData.id}/interview/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ history: chatHistory })
+                });
+
+                if (!res.ok) throw new Error("Mock Interview Service error");
+
+                // Remove typing indicator
+                const indicator = document.getElementById('chat-typing-indicator');
+                if (indicator) indicator.remove();
+
+                // Append empty assistant message bubble to stream text in
+                appendMessageBubble('assistant', '');
+                const bubbleTextDiv = chatContainer.lastElementChild.querySelector('.bubble-text-content');
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let partialLine = '';
+                let fullResponseText = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    partialLine += chunk;
+
+                    const lines = partialLine.split('\n');
+                    partialLine = lines.pop(); // keep last incomplete line
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.slice(6).trim();
+                            if (dataStr === '[DONE]') continue;
+                            try {
+                                const parsed = JSON.parse(dataStr);
+                                if (parsed.chunk) {
+                                    fullResponseText += parsed.chunk;
+                                    // Remove the tags before rendering live stream
+                                    const renderedText = fullResponseText
+                                        .replace(/\[XP:\s*\+(\d+)\]/gi, '')
+                                        .replace(/\[STRIKE\]/gi, '')
+                                        .replace(/\[TERMINATED\]/gi, '')
+                                        .replace(/\[PASSED\]/gi, '');
+                                    bubbleTextDiv.innerHTML = formatText(renderedText);
+                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                }
+                            } catch (e) { }
+                        }
+                    }
+                }
+
+                // Add response to memory history
+                chatHistory.push({ role: 'assistant', content: fullResponseText });
+
+                // Process STRIKE
+                if (fullResponseText.includes('[STRIKE]')) {
+                    addStrike();
+                }
+
+                // Process XP award
+                const xpMatch = fullResponseText.match(/\[XP:\s*\+(\d+)\]/i);
+                if (xpMatch) {
+                    const points = parseInt(xpMatch[1]);
+                    awardXP(points);
+                }
+
+                // Check for termination / pass
+                if (fullResponseText.includes('[TERMINATED]')) {
+                    handleInterviewEnd(false);
+                } else if (fullResponseText.includes('[PASSED]')) {
+                    handleInterviewEnd(true);
+                }
+
+            } catch (err) {
+                console.error("Chat turn error:", err);
+                const indicator = document.getElementById('chat-typing-indicator');
+                if (indicator) indicator.remove();
+
+                showToast("Connection Lost", "Failed to get response from Interviewer. Try again.", "error");
+                appendMessageBubble('assistant', "⚠️ Engine Timeout. The connection was lost. Please repeat your answer or try again.");
+            } finally {
+                if (userStrikes < 3 && !fullResponseText.includes('[TERMINATED]') && !fullResponseText.includes('[PASSED]')) {
+                    inputField.disabled = false;
+                    sendBtn.disabled = false;
+                    inputField.focus();
+                }
+            }
+        }
+
+        function awardXP(points) {
+            userXP += points;
+            localStorage.setItem('Resumeint-xp', userXP);
+
+            // Update UI Score
+            const display = document.getElementById('xp-display-val');
+            if (display) {
+                display.textContent = userXP;
+            }
+
+            // Play float spark animation over the XP Card
+            const card = document.getElementById('xp-card-el');
+            if (card) {
+                const spark = document.createElement('div');
+                spark.className = 'xp-spark';
+                spark.textContent = `+${points} XP`;
+                spark.style.left = `${Math.random() * 60 + 20}%`;
+                spark.style.top = `60%`;
+                card.appendChild(spark);
+
+                setTimeout(() => spark.remove(), 1200);
+            }
+
+            showToast("Achievement Unlocked! 🏆", `Awesome answer! Earned +${points} Skill Points.`, "success");
+        }
+
+        document.addEventListener('DOMContentLoaded', loadInterviewRoom);
+    </script>
+</body>
+
+</html>
