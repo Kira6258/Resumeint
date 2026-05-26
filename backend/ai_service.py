@@ -325,8 +325,10 @@ async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, An
     - Target Role Alignment: Look for specific keywords, libraries, databases, architectures, and practices expected for a modern "{target_role}" candidate.
     - Score out of 100: Be realistic but encouraging. 85+ is interview-ready, 70-85 is good but has gaps, <70 has significant technical gaps.
     - STAR Bullet Improvements: Identify 3 bullet points in the resume that are weak, passive, or lack impact. Rewrite them using the STAR (Situation, Task, Action, Result) methodology. Provide the original, the improved version, and a brief 1-sentence rationale explaining why it is better.
-    - Gaps & Missing Skills: Highlight 4-6 specific technical skills (languages, frameworks, architectures, databases, or patterns) that are expected for a "{target_role}" but are missing or weak in their current resume.
+    - Gaps & Missing Skills: Highlight 4-6 specific technical skills (languages, frameworks, architectures, databases, or patterns) that are expected for a "{target_role}" but are missing or underrepresented in their current resume.
+      CRITICAL: Make each gap extremely short, punchy, and readable (1-4 words max, e.g. "Docker & Kubernetes" or "SQL Index Normalization"). Avoid writing full sentences.
     - Strengths: Highlight 3 specific strong engineering achievements or positive traits present in the resume.
+      CRITICAL: Make each strength extremely short and punchy (1-5 words max, e.g. "REST API Design" or "Asynchronous Sockets"). Avoid long sentences.
     - Recommended Skill Fillers: Provide 2-3 gentle, non-mandatory, specific project suggestions or study focus areas they could build to naturally fill these gaps. Do NOT force or coerce them to build it, keep the language encouraging and professional.
     
     Resume Text:
@@ -336,16 +338,16 @@ async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, An
     {{
         "score": 74,
         "role": "{target_role}",
-        "summary": "Brief 2-3 sentence overview of how well this resume aligns with the target role.",
+        "summary": "Extremely concise 1-2 sentence high-impact summary of target alignment (under 40 words max). No filler.",
         "strengths": [
-            "Strength 1",
-            "Strength 2",
-            "Strength 3"
+            "Short Strength 1",
+            "Short Strength 2",
+            "Short Strength 3"
         ],
         "gaps": [
-            "Gap 1 (e.g. Missing relational database optimization keywords)",
-            "Gap 2",
-            "Gap 3"
+            "Short Keyword Gap 1",
+            "Short Keyword Gap 2",
+            "Short Keyword Gap 3"
         ],
         "bullet_improvements": [
             {{
