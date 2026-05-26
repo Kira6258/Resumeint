@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="css/resume-analyser.css?v=1.0">
     <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
+
 <body class="animate-in">
     <nav class="glass-nav">
         <div class="max-width-container nav-content">
@@ -37,12 +39,14 @@
 
     <main class="max-width-container" style="padding-top: var(--space-64); padding-bottom: var(--space-80);">
         <header style="text-align: center; margin-bottom: var(--space-48);" class="fade-up">
-            <div class="sticker-badge gold" style="margin-bottom: var(--space-16);">Premium ATS Auditor</div>
-            <h1 style="font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 5vw, 2.8rem); margin-bottom: var(--space-12);">
+
+            <h1
+                style="font-family: var(--font-display); font-weight: 800; font-size: clamp(2rem, 5vw, 2.8rem); margin-bottom: var(--space-12);">
                 Optimize Your <span class="gradient-text">Resume ATS Score</span>
             </h1>
             <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
-                Analyze your technical profile against your target job role. Find core keyword gaps, formatting improvements, and strong STAR-method bullet points.
+                Analyze your technical profile against your target job role. Find core keyword gaps, formatting
+                improvements, and strong STAR-method bullet points.
             </p>
         </header>
 
@@ -50,13 +54,16 @@
             <!-- Left: Sidebar controls -->
             <div class="upload-sidebar">
                 <div class="bento-card">
-                    <h3 style="font-size: 1.1rem; margin-bottom: var(--space-20); display: flex; align-items: center; gap: 8px;">
+                    <h3
+                        style="font-size: 1.1rem; margin-bottom: var(--space-20); display: flex; align-items: center; gap: 8px;">
                         🎯 Technical Focus
                     </h3>
-                    
+
                     <div class="form-group">
                         <label class="form-label" style="font-size: 0.7rem;">Target Job Role</label>
-                        <input type="text" id="target-role" class="form-input" placeholder="e.g. Backend Engineer, React Specialist..." value="Backend Engineer" style="width: 100%; background: var(--bg-primary);">
+                        <input type="text" id="target-role" class="form-input"
+                            placeholder="e.g. Backend Engineer, React Specialist..." value="Backend Engineer"
+                            style="width: 100%; background: var(--bg-primary);">
                     </div>
 
                     <div style="margin: var(--space-20) 0; height: 1px; background: var(--border-default);"></div>
@@ -65,13 +72,18 @@
                         <input type="file" id="resume-file" class="hidden" accept=".pdf,.doc,.docx,.txt">
                         <div class="analyzer-dropzone-inner" onclick="document.getElementById('resume-file').click()">
                             <div style="font-size: 2.2rem; margin-bottom: var(--space-8);">📄</div>
-                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">Click or Drag Resume</div>
-                            <div style="font-size: 0.75rem; color: var(--text-tertiary);">PDF, DOCX, or TXT up to 5MB</div>
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">Click or Drag Resume
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-tertiary);">PDF, DOCX, or TXT up to 5MB
+                            </div>
                         </div>
-                        <p id="file-name" style="margin-top: var(--space-12); color: var(--accent-gold); font-weight: 700; font-size: 0.8rem;"></p>
+                        <p id="file-name"
+                            style="margin-top: var(--space-12); color: var(--accent-gold); font-weight: 700; font-size: 0.8rem;">
+                        </p>
                     </div>
 
-                    <button id="analyze-btn" class="btn btn-primary btn-glow" style="width: 100%; margin-top: var(--space-20); height: 50px;">
+                    <button id="analyze-btn" class="btn btn-primary btn-glow"
+                        style="width: 100%; margin-top: var(--space-20); height: 50px;">
                         Run ATS Audit
                     </button>
                 </div>
@@ -88,32 +100,42 @@
                             <span class="score-label">ATS Score</span>
                         </div>
                     </div>
-                    <div id="score-verdict" class="sticker-badge" style="background: rgba(212,162,78,0.06); font-weight: 700;">Analyzing Profile...</div>
+                    <div id="score-verdict" class="sticker-badge"
+                        style="background: rgba(212,162,78,0.06); font-weight: 700;">Analyzing Profile...</div>
                 </div>
             </div>
 
             <!-- Right: Results Panel -->
             <div class="results-main">
                 <!-- Welcome/Placeholder State -->
-                <div id="placeholder-panel" class="bento-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; padding: var(--space-48);">
+                <div id="placeholder-panel" class="bento-card"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; padding: var(--space-48);">
                     <div style="font-size: 3.5rem; margin-bottom: var(--space-20);">🔍</div>
-                    <h2 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: var(--space-8);">Ready for Scan</h2>
+                    <h2 style="font-family: var(--font-display); font-size: 1.5rem; margin-bottom: var(--space-8);">
+                        Ready for Scan</h2>
                     <p style="color: var(--text-secondary); max-width: 420px; font-size: 0.95rem; line-height: 1.6;">
-                        Upload your CV, select your target tech role, and click "Run ATS Audit" to receive instant visual evaluation feedback!
+                        Upload your CV, select your target tech role, and click "Run ATS Audit" to receive instant
+                        visual evaluation feedback!
                     </p>
                 </div>
 
                 <!-- Loading State -->
-                <div id="loading-panel" class="bento-card hidden" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; padding: var(--space-48);">
-                    <div style="width: 44px; height: 44px; border: 3px solid var(--border-muted); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: var(--space-24);"></div>
-                    <h2 style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: var(--space-8);">Analyzing Resume...</h2>
-                    <p style="color: var(--text-secondary); font-size: 0.95rem;">Checking industry technical keywords and rewriting weak bullets.</p>
+                <div id="loading-panel" class="bento-card hidden"
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; text-align: center; padding: var(--space-48);">
+                    <div
+                        style="width: 44px; height: 44px; border: 3px solid var(--border-muted); border-top-color: var(--accent-gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: var(--space-24);">
+                    </div>
+                    <h2 style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: var(--space-8);">
+                        Analyzing Resume...</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem;">Checking industry technical keywords
+                        and rewriting weak bullets.</p>
                 </div>
 
                 <!-- Results Output Dashboard -->
                 <div id="results-panel" class="hidden">
                     <div class="analyzer-tabs">
-                        <button class="analyzer-tab-btn active" data-tab="summary-panel">Summary &amp; Highlights</button>
+                        <button class="analyzer-tab-btn active" data-tab="summary-panel">Summary &amp;
+                            Highlights</button>
                         <button class="analyzer-tab-btn" data-tab="skills-panel">Gaps &amp; Keywords</button>
                         <button class="analyzer-tab-btn" data-tab="bullets-panel">STAR Bullet Refiner</button>
                         <button class="analyzer-tab-btn" data-tab="paths-panel">Skill Fillers (Suggestions)</button>
@@ -122,21 +144,30 @@
                     <!-- Tab 1: Summary -->
                     <div id="summary-panel" class="analyzer-panel active">
                         <div class="bento-card" style="margin-bottom: var(--space-24);">
-                            <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: var(--space-12);">ATS Evaluator Summary</h3>
-                            <p id="summary-text" style="color: var(--text-secondary); font-size: 1rem; line-height: 1.7; margin: 0;"></p>
+                            <h3
+                                style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: var(--space-12);">
+                                ATS Evaluator Summary</h3>
+                            <p id="summary-text"
+                                style="color: var(--text-secondary); font-size: 1rem; line-height: 1.7; margin: 0;"></p>
                         </div>
-                        <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: var(--space-16);">Top Resume Strengths</h3>
+                        <h3
+                            style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: var(--space-16);">
+                            Top Resume Strengths</h3>
                         <ul class="highlights-list" id="strengths-list"></ul>
                     </div>
 
                     <!-- Tab 2: Missing skills -->
                     <div id="skills-panel" class="analyzer-panel">
                         <div class="bento-card" style="margin-bottom: var(--space-24);">
-                            <h3 style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: var(--space-8); display: flex; align-items: center; gap: 8px;">
+                            <h3
+                                style="font-family: var(--font-display); font-size: 1.2rem; margin-bottom: var(--space-8); display: flex; align-items: center; gap: 8px;">
                                 ⚠️ Missing Keyword Gaps
                             </h3>
-                            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: var(--space-20); line-height: 1.5;">
-                                These core skills, frameworks, or database terms are missing or underrepresented in your resume based on requirements for a <span id="skills-role-name" style="color: var(--accent-gold); font-weight: 700;">Backend Engineer</span>:
+                            <p
+                                style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: var(--space-20); line-height: 1.5;">
+                                These core skills, frameworks, or database terms are missing or underrepresented in your
+                                resume based on requirements for a <span id="skills-role-name"
+                                    style="color: var(--accent-gold); font-weight: 700;">Backend Engineer</span>:
                             </p>
                             <ul class="highlights-list" id="gaps-list"></ul>
                         </div>
@@ -144,9 +175,12 @@
 
                     <!-- Tab 3: Bullet improvements -->
                     <div id="bullets-panel" class="analyzer-panel">
-                        <h3 style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: var(--space-12);">ATS-Optimized Bullet Replacements</h3>
+                        <h3
+                            style="font-family: var(--font-display); font-size: 1.1rem; margin-bottom: var(--space-12);">
+                            ATS-Optimized Bullet Replacements</h3>
                         <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: var(--space-24);">
-                            Copy-paste these enhanced, STAR-method bullet points directly into your resume to replace weak, passive phrases with metric-driven actions:
+                            Copy-paste these enhanced, STAR-method bullet points directly into your resume to replace
+                            weak, passive phrases with metric-driven actions:
                         </p>
                         <div id="bullets-list"></div>
                     </div>
@@ -154,9 +188,13 @@
                     <!-- Tab 4: Gentle roadmap suggestions -->
                     <div id="paths-panel" class="analyzer-panel">
                         <div class="bento-card" style="margin-bottom: var(--space-24);">
-                            <h3 style="font-family: var(--font-display); font-size: 1.15rem; margin-bottom: var(--space-8);">💡 Focus Areas &amp; Gaps Fillers</h3>
-                            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: var(--space-20); line-height: 1.5;">
-                                Want to organically boost your ATS score? These are gentle, non-mandatory project ideas designed to help you naturally build and display these missing skills:
+                            <h3
+                                style="font-family: var(--font-display); font-size: 1.15rem; margin-bottom: var(--space-8);">
+                                💡 Focus Areas &amp; Gaps Fillers</h3>
+                            <p
+                                style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: var(--space-20); line-height: 1.5;">
+                                Want to organically boost your ATS score? These are gentle, non-mandatory project ideas
+                                designed to help you naturally build and display these missing skills:
                             </p>
                             <div class="projects-grid" id="suggested-projects-list"></div>
                         </div>
@@ -194,7 +232,7 @@
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.analyzer-tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.analyzer-panel').forEach(p => p.classList.remove('active'));
-                
+
                 btn.classList.add('active');
                 const targetId = btn.getAttribute('data-tab');
                 document.getElementById(targetId).classList.add('active');
@@ -246,21 +284,21 @@
             // Hide loading panel and show results
             document.getElementById('loading-panel').classList.add('hidden');
             document.getElementById('results-panel').classList.remove('hidden');
-            
+
             // Score circle updates
             const scoreCard = document.getElementById('score-card');
             scoreCard.classList.remove('hidden');
-            
+
             const scoreVal = document.getElementById('score-val');
             const scoreCircle = document.getElementById('score-circle-fill');
             const verdictDisp = document.getElementById('score-verdict');
-            
+
             // Animate score counter
             const targetScore = parseInt(data.score) || 0;
             let currentVal = 0;
             const duration = 1500;
             const stepTime = Math.max(Math.floor(duration / targetScore), 15);
-            
+
             const timer = setInterval(() => {
                 currentVal++;
                 scoreVal.textContent = currentVal;
@@ -291,7 +329,7 @@
 
             // Tab 1: Summary and Strengths
             document.getElementById('summary-text').textContent = data.summary || "Summary audit successfully generated.";
-            
+
             const strengthsList = document.getElementById('strengths-list');
             strengthsList.innerHTML = (data.strengths || []).map(str => `
                 <li class="highlight-item strength">
@@ -357,11 +395,12 @@
         }
     </script>
     <script>
-        document.getElementById('mobile-toggle').addEventListener('click', function() {
+        document.getElementById('mobile-toggle').addEventListener('click', function () {
             const menu = document.getElementById('mobile-menu');
             const isOpen = menu.classList.toggle('active');
             this.textContent = isOpen ? '✕' : '☰';
         });
     </script>
 </body>
+
 </html>

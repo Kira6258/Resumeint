@@ -326,9 +326,9 @@ async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, An
     - Score out of 100: Be realistic but encouraging. 85+ is interview-ready, 70-85 is good but has gaps, <70 has significant technical gaps.
     - STAR Bullet Improvements: Identify 3 bullet points in the resume that are weak, passive, or lack impact. Rewrite them using the STAR (Situation, Task, Action, Result) methodology. Provide the original, the improved version, and a brief 1-sentence rationale explaining why it is better.
     - Gaps & Missing Skills: Highlight 4-6 specific technical skills (languages, frameworks, architectures, databases, or patterns) that are expected for a "{target_role}" but are missing or underrepresented in their current resume.
-      CRITICAL: Make each gap extremely short, punchy, and readable (1-4 words max, e.g. "Docker & Kubernetes" or "SQL Index Normalization"). Avoid writing full sentences.
+      CRITICAL: Provide a highly detailed, rich, and constructive explanation of the gap and why it is critical for a "{target_role}" candidate (e.g., "Missing relational database optimization keywords - modern backends require robust indexing, query optimization, and schema normalization to handle scale").
     - Strengths: Highlight 3 specific strong engineering achievements or positive traits present in the resume.
-      CRITICAL: Make each strength extremely short and punchy (1-5 words max, e.g. "REST API Design" or "Asynchronous Sockets"). Avoid long sentences.
+      CRITICAL: Write each strength as a short, active phrase (8-15 words max, e.g. "Excellent database query structure and relational schema design").
     - Recommended Skill Fillers: Provide 2-3 gentle, non-mandatory, specific project suggestions or study focus areas they could build to naturally fill these gaps. Do NOT force or coerce them to build it, keep the language encouraging and professional.
     
     Resume Text:
@@ -338,16 +338,16 @@ async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, An
     {{
         "score": 74,
         "role": "{target_role}",
-        "summary": "Extremely concise 1-2 sentence high-impact summary of target alignment (under 40 words max). No filler.",
+        "summary": "A concise, high-impact 2-3 sentence paragraph (around 45-60 words) summarizing candidate alignment and key focus areas.",
         "strengths": [
-            "Short Strength 1",
-            "Short Strength 2",
-            "Short Strength 3"
+            "Strength 1 with short context (8-15 words)",
+            "Strength 2 with short context (8-15 words)",
+            "Strength 3 with short context (8-15 words)"
         ],
         "gaps": [
-            "Short Keyword Gap 1",
-            "Short Keyword Gap 2",
-            "Short Keyword Gap 3"
+            "Detailed missing keyword gap 1 with actionable explanation (e.g. Missing relational database optimization keywords - modern backends require indexing and query tuning experience)",
+            "Detailed missing keyword gap 2 with actionable explanation",
+            "Detailed missing keyword gap 3 with actionable explanation"
         ],
         "bullet_improvements": [
             {{
