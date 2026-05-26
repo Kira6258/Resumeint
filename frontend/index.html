@@ -4,28 +4,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resumeint — The Architectural Standard for Learning</title>
-    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <title>Resumeint — Turn Your Syllabus Into a Job-Ready Portfolio | AI Project Builder</title>
+    <meta name="description"
+        content="Paste your college syllabus and get a production-ready portfolio project in minutes. AI-generated roadmaps, database architecture, ATS resume scoring, and weekly code reviews. Free for students.">
+    <meta name="keywords"
+        content="AI portfolio builder, syllabus to project, resume builder for freshers, ATS resume checker, project ideas for CS students, GitHub portfolio builder, final year project ideas">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Resumeint">
+
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://resumeint.com/">
+    <meta property="og:title" content="Resumeint — Turn Your Syllabus Into a Job-Ready Portfolio">
+    <meta property="og:description"
+        content="Paste your college syllabus → AI builds a full project roadmap, database schema, and code review in minutes. Free for CS students.">
+    <meta property="og:image" content="https://resumeint.com/assets/og-preview.png">
+    <meta property="og:site_name" content="Resumeint">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Resumeint — Turn Your Syllabus Into a Job-Ready Portfolio">
+    <meta name="twitter:description"
+        content="AI converts your course curriculum into job-ready projects with roadmaps, architecture, and code reviews. Free for students.">
+    <meta name="twitter:image" content="https://resumeint.com/assets/og-preview.png">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://resumeint.com/">
+
+    <!-- Schema Markup -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Resumeint",
+      "applicationCategory": "EducationalApplication",
+      "description": "AI-powered platform that converts college syllabi into production-ready portfolio projects with roadmaps, database architecture, and ATS resume optimization.",
+      "url": "https://resumeint.com",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR",
+        "description": "Free plan available"
+      },
+      "featureList": ["Syllabus to Portfolio Conversion", "AI Project Roadmaps", "ATS Resume Analyzer", "GitHub Sync", "Weekly Code Reviews"]
+    }
+    </script>
+
+    <link rel="stylesheet" href="css/style.css?v=51.0">
     <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
 
 <body class="animate-in">
+    <!-- Announcement Banner -->
+    <div class="announcement-bar" id="announcement-bar">
+        <span>🚀 <strong>Placement season is here.</strong> Build your portfolio before interviews start. &nbsp;<a
+                href="register.html" class="announcement-link">Start Free →</a></span>
+        <button class="announcement-close" onclick="document.getElementById('announcement-bar').style.display='none'"
+            aria-label="Close">&times;</button>
+    </div>
+
     <nav class="glass-nav">
         <div class="max-width-container nav-content">
             <div class="nav-group">
                 <a href="index.html" class="logo">Resumeint</a>
-                <button class="mobile-nav-toggle" id="mobile-toggle">☰</button>
+                <button class="mobile-nav-toggle" id="mobile-toggle" aria-label="Toggle menu">☰</button>
                 <div class="nav-links-wrapper" id="mobile-menu">
                     <a href="dashboard.html" class="nav-link hidden" id="nav-dashboard">Dashboard</a>
                     <a href="upload.html" class="nav-link hidden" id="nav-new-project">New Project</a>
+                    <a href="resume-analyser.html" class="nav-link hidden" id="nav-analyzer">Resume Analyzer</a>
                     <a href="pricing.html" class="nav-link">Pricing</a>
+                    <a href="#how-it-works" class="nav-link">How It Works</a>
                 </div>
             </div>
             <div class="nav-actions">
-                <button class="theme-toggle-btn" id="theme-toggle">🌙</button>
+                <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">🌙</button>
                 <div id="auth-buttons" class="nav-auth-group">
                     <a href="login.html" class="nav-link">Login</a>
-                    <a href="register.html" class="btn btn-primary btn-small">Get Started</a>
+                    <a href="register.html" class="btn btn-primary btn-small" id="nav-cta">Get Started Free</a>
                 </div>
                 <a href="profile.html" class="nav-avatar-link hidden">
                     <div id="user-avatar" class="nav-avatar">U</div>
@@ -34,67 +89,566 @@
             </div>
         </div>
     </nav>
+
     <main>
-        <header class="hero-section animate-fade-in">
+        <!-- ═══ HERO SECTION ═══ -->
+        <header class="hero-section animate-fade-in" id="hero">
             <div class="hero-glow"></div>
+
             <h1 class="hero-headline">
-                The <span class="gradient-text">Architectural</span><br>Standard for Learning.
+                From Syllabus to<br>
+                <span class="gradient-text-gold">Portfolio</span> in Minutes.
             </h1>
             <p class="hero-description">
-                Convert any college syllabus into a production-ready portfolio.
-                Professional roadmaps, MySQL architectures, and automated code reviews.
+                Paste your college course syllabus → AI generates a <strong>production-ready project roadmap</strong>,
+                database architecture, and weekly code reviews. Built for students who want to get
+                <strong>hired</strong>, not just pass exams.
             </p>
             <div class="hero-actions">
-                <a href="register.html" class="btn btn-primary btn-large btn-glow" id="hero-cta">Start Building Free</a>
-                <a href="#features" class="btn btn-outline btn-large">View Capabilities</a>
+                <a href="register.html" class="btn btn-primary btn-large btn-glow" id="hero-cta">
+                    Build My Portfolio Free →
+                </a>
+                <a href="#how-it-works" class="btn btn-outline btn-large hero-demo-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z" />
+                    </svg>
+                    See How It Works
+                </a>
+            </div>
+            <div class="hero-trust-row">
+                <span class="hero-trust-item">✓ Free forever plan</span>
+                <span class="hero-trust-sep">·</span>
+                <span class="hero-trust-item">✓ No credit card needed</span>
+                <span class="hero-trust-sep">·</span>
+                <span class="hero-trust-item">✓ GitHub sync included</span>
             </div>
         </header>
-        <section id="features" class="max-width-container features-section animate-fade-in stagger-1">
-            <div style="text-align:center;margin-bottom:var(--space-48);">
-                <h2 class="section-title">The Architect's Toolkit</h2>
-                <p style="color:var(--text-secondary);max-width:520px;margin:0 auto;">Everything you need to transform
-                    coursework into production-grade portfolio projects.</p>
-            </div>
-            <div class="features-grid">
-                <div class="bento-card">
-                    <div class="feature-icon">📂</div>
-                    <h3>Syllabus-to-Schema</h3>
-                    <p class="instruction-desc">AI extracts core competencies and generates a production-ready MySQL
-                        architecture for your project.</p>
+
+        <!-- ═══ STATS BAR ═══ -->
+        <section class="stats-bar animate-fade-in stagger-1" aria-label="Platform statistics">
+            <div class="max-width-container stats-bar-inner">
+                <div class="stat-item">
+                    <div class="stat-number" data-target="500">500+</div>
+                    <div class="stat-label">Students Building</div>
                 </div>
-                <div class="bento-card">
-                    <div class="feature-icon">📋</div>
-                    <h3>Interactive Roadmap</h3>
-                    <p class="instruction-desc">A step-by-step guidance system designed to move you from planning to
-                        deployment with professional rigor.</p>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="1200">1,200+</div>
+                    <div class="stat-label">Projects Generated</div>
                 </div>
-                <div class="bento-card">
-                    <div class="feature-icon">✨</div>
-                    <h3>AI Code Reviews</h3>
-                    <p class="instruction-desc">Submit your code weekly and get automated, constructive feedback to keep
-                        your architecture on track.</p>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="40">40+</div>
+                    <div class="stat-label">Colleges Represented</div>
                 </div>
-                <div class="bento-card">
-                    <div class="feature-icon">🐙</div>
-                    <h3>GitHub Sync</h3>
-                    <p class="instruction-desc">Push your generated project structure and README directly to GitHub with
-                        a single professional commit.</p>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number">₹49</div>
+                    <div class="stat-label">Per Month (Pro Plan)</div>
                 </div>
             </div>
         </section>
+
+        <!-- ═══ HOW IT WORKS ═══ -->
+        <section id="how-it-works" class="max-width-container how-section animate-fade-in stagger-2">
+            <div class="section-header-centered">
+                <div class="sticker-badge gold">Dead Simple</div>
+                <h2 class="section-title">Three Steps to a Job-Ready Portfolio</h2>
+                <p class="section-subtitle">No prior project experience needed. Just paste your syllabus and watch the
+                    magic happen.</p>
+            </div>
+            <div class="how-steps-grid">
+                <div class="how-step-card">
+                    <div class="step-number">01</div>
+                    <div class="step-icon-wrap">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>
+                    </div>
+                    <h3>Paste Your Syllabus</h3>
+                    <p>Copy your course curriculum, DBMS syllabus, or upload a PDF. Our AI reads and extracts every
+                        skill and technology.</p>
+                    <div class="step-connector"></div>
+                </div>
+                <div class="how-step-card">
+                    <div class="step-number">02</div>
+                    <div class="step-icon-wrap">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3>Pick Your Project</h3>
+                    <p>AI generates 5 curated project ideas with tech stacks tailored to your course. Pick one and let
+                        it build your roadmap.</p>
+                    <div class="step-connector"></div>
+                </div>
+                <div class="how-step-card">
+                    <div class="step-number">03</div>
+                    <div class="step-icon-wrap">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3>Build, Review, Ship</h3>
+                    <p>Follow your week-by-week roadmap, submit code for AI review, and sync your final project directly
+                        to GitHub.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ LIVE DEMO / PRODUCT PREVIEW ═══ -->
+        <section class="demo-section animate-fade-in stagger-3" id="demo">
+            <div class="max-width-container">
+                <div class="section-header-centered">
+                    <div class="sticker-badge gold">See It In Action</div>
+                    <h2 class="section-title">Watch the AI Build Your Portfolio</h2>
+                    <p class="section-subtitle">This is exactly what happens when you paste your DBMS syllabus into
+                        Resumeint.</p>
+                </div>
+                <div class="demo-window">
+                    <div class="demo-titlebar">
+                        <span class="demo-dot demo-dot-red"></span>
+                        <span class="demo-dot demo-dot-yellow"></span>
+                        <span class="demo-dot demo-dot-green"></span>
+                        <span class="demo-titlebar-text">resumeint.com — New Project</span>
+                    </div>
+                    <div class="demo-body">
+                        <div class="demo-steps-tab" id="demo-tabs">
+                            <button class="demo-tab active" data-step="0">① Paste Syllabus</button>
+                            <button class="demo-tab" data-step="1">② Choose Project</button>
+                            <button class="demo-tab" data-step="2">③ View Roadmap</button>
+                        </div>
+                        <!-- Step 0: Paste syllabus -->
+                        <div class="demo-step-content active" id="demo-step-0">
+                            <div class="demo-panel-left">
+                                <div class="demo-label">Architecture Name</div>
+                                <div class="demo-input-fake">DBMS Final Year Project</div>
+                                <div class="demo-label" style="margin-top:16px;">Curriculum Syllabus</div>
+                                <div class="demo-textarea-fake">
+                                    Unit 1: Relational Model — ER diagrams, normalization, functional
+                                    dependencies...<br>
+                                    Unit 2: SQL — DDL, DML, constraints, joins, subqueries...<br>
+                                    Unit 3: Transaction Management — ACID properties, concurrency control...<br>
+                                    Unit 4: Query Optimization — indexing, B+ trees, query plans...
+                                </div>
+                                <div class="demo-btn-fake">⚡ Architect Roadmap</div>
+                            </div>
+                        </div>
+                        <!-- Step 1: Choose project -->
+                        <div class="demo-step-content" id="demo-step-1">
+                            <div class="demo-ideas-grid">
+                                <div class="demo-idea-card demo-idea-selected">
+                                    <div class="demo-idea-tag" style="color:#22c55e;background:rgba(34,197,94,0.1)">◈
+                                        Beginner</div>
+                                    <div class="demo-idea-title">E-Commerce Backend System</div>
+                                    <div class="demo-idea-desc">Full relational database for products, orders, and
+                                        payments with query optimization.</div>
+                                    <div class="demo-idea-pills">
+                                        <span class="demo-pill">MySQL</span><span class="demo-pill">Node.js</span><span
+                                            class="demo-pill">REST API</span>
+                                    </div>
+                                    <div class="demo-idea-cta">✓ Selected</div>
+                                </div>
+                                <div class="demo-idea-card">
+                                    <div class="demo-idea-tag" style="color:#f59e0b;background:rgba(245,158,11,0.1)">◈◈
+                                        Intermediate</div>
+                                    <div class="demo-idea-title">Hospital Management System</div>
+                                    <div class="demo-idea-desc">Patient records, appointments, and doctor scheduling
+                                        with concurrency control.</div>
+                                    <div class="demo-idea-pills">
+                                        <span class="demo-pill">PostgreSQL</span><span class="demo-pill">FastAPI</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Step 2: Roadmap -->
+                        <div class="demo-step-content" id="demo-step-2">
+                            <div class="demo-roadmap">
+                                <div class="demo-roadmap-week demo-week-done">
+                                    <div class="demo-week-badge done">✓ Week 1</div>
+                                    <div class="demo-week-title">ER Diagram & Schema Design</div>
+                                    <div class="demo-week-tasks">Design entity-relationship diagram · Normalize to 3NF ·
+                                        Write CREATE TABLE statements</div>
+                                </div>
+                                <div class="demo-roadmap-week demo-week-active">
+                                    <div class="demo-week-badge active">⚡ Week 2</div>
+                                    <div class="demo-week-title">Core CRUD Operations</div>
+                                    <div class="demo-week-tasks">Build product CRUD APIs · Implement JOIN queries · Add
+                                        transaction support</div>
+                                </div>
+                                <div class="demo-roadmap-week">
+                                    <div class="demo-week-badge">○ Week 3</div>
+                                    <div class="demo-week-title">Query Optimization & Indexing</div>
+                                    <div class="demo-week-tasks">Add B+ tree indexes · Analyze EXPLAIN plans · Optimize
+                                        slow queries</div>
+                                </div>
+                                <div class="demo-roadmap-week">
+                                    <div class="demo-week-badge">○ Week 4</div>
+                                    <div class="demo-week-title">GitHub Push & Documentation</div>
+                                    <div class="demo-week-tasks">Generate README · Push to GitHub · Write project report
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="demo-cta-row">
+                    <a href="register.html" class="btn btn-primary btn-large btn-glow">Try It Free </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ RESUME ANALYZER HIGHLIGHT ═══ -->
+        <section class="max-width-container feature-spotlight animate-fade-in stagger-1" id="ats-feature">
+            <div class="spotlight-inner">
+                <div class="spotlight-text">
+                    <div class="sticker-badge gold">Secret Weapon</div>
+                    <h2 class="section-title">Your ATS Score Is Probably Terrible.<br><span
+                            class="gradient-text-gold">We'll Fix That.</span></h2>
+                    <p class="section-subtitle">Upload your resume → AI scans it against your target job role, finds
+                        every missing keyword, rewrites your weak bullet points using the STAR method, and gives you an
+                        ATS score from 0–100.</p>
+                    <ul class="spotlight-bullets">
+                        <li>
+                            <span class="bullet-icon">✦</span>
+                            <span><strong>ATS Score from 0–100</strong> — Know exactly where you stand before
+                                applying</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">✦</span>
+                            <span><strong>Missing Keyword Detection</strong> — Find what recruiters are scanning
+                                for</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">✦</span>
+                            <span><strong>STAR Bullet Rewriter</strong> — Transform weak lines into metric-driven impact
+                                statements</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon">✦</span>
+                            <span><strong>Project Gap Filler</strong> — Get project ideas that organically improve your
+                                score</span>
+                        </li>
+                    </ul>
+                    <a href="resume-analyser.html" class="btn btn-primary btn-glow" id="ats-cta">Check My ATS Score Free
+                        →</a>
+                </div>
+                <div class="spotlight-visual">
+                    <div class="ats-mockup">
+                        <div class="ats-score-circle">
+                            <svg viewBox="0 0 120 120" class="ats-score-svg">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)"
+                                    stroke-width="8" />
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="#d4a24e" stroke-width="8"
+                                    stroke-dasharray="314" stroke-dashoffset="80" stroke-linecap="round"
+                                    transform="rotate(-90 60 60)" class="ats-score-fill" />
+                            </svg>
+                            <div class="ats-score-text">
+                                <div class="ats-score-number">74</div>
+                                <div class="ats-score-label">ATS Score</div>
+                            </div>
+                        </div>
+                        <div class="ats-gaps-list">
+                            <div class="ats-gap-item"><span class="ats-gap-icon missing">⚡</span> Missing: Docker,
+                                Kubernetes</div>
+                            <div class="ats-gap-item"><span class="ats-gap-icon missing">⚡</span> Missing: System Design
+                                mention</div>
+                            <div class="ats-gap-item"><span class="ats-gap-icon ok">✓</span> Strong: REST API, SQL,
+                                Python</div>
+                            <div class="ats-gap-item"><span class="ats-gap-icon ok">✓</span> Strong: GitHub activity
+                                present</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ FEATURES GRID ═══ -->
+        <section id="features" class="max-width-container features-section animate-fade-in stagger-2">
+            <div class="section-header-centered">
+                <h2 class="section-title">Everything You Need to Get Hired</h2>
+                <p class="section-subtitle">One platform to build your portfolio, optimize your resume, and track your
+                    progress — all powered by AI.</p>
+            </div>
+            <div class="features-grid">
+                <div class="bento-card feature-card-new">
+                    <div class="feature-icon-new">📂</div>
+                    <h3>Syllabus-to-Schema</h3>
+                    <p class="instruction-desc">AI extracts core competencies from your course and generates a
+                        production-ready MySQL/PostgreSQL architecture — tables, relations, and indexes included.</p>
+                    <div class="feature-tag">AI-Powered</div>
+                </div>
+                <div class="bento-card feature-card-new">
+                    <div class="feature-icon-new">📋</div>
+                    <h3>Week-by-Week Roadmap</h3>
+                    <p class="instruction-desc">A structured milestone system that takes you from planning to deployment
+                        — with exactly what to build each week and what to learn.</p>
+                    <div class="feature-tag">Structured</div>
+                </div>
+                <div class="bento-card feature-card-new">
+                    <div class="feature-icon-new">✨</div>
+                    <h3>AI Code Reviews</h3>
+                    <p class="instruction-desc">Submit your weekly code and get real AI feedback — architecture issues,
+                        missing edge cases, performance tips, and best practices flagged instantly.</p>
+                    <div class="feature-tag">Pro Feature</div>
+                </div>
+                <div class="bento-card feature-card-new">
+                    <div class="feature-icon-new">🐙</div>
+                    <h3>1-Click GitHub Sync</h3>
+                    <p class="instruction-desc">Push your generated project structure, README, and commit history
+                        directly to GitHub with a single professional commit.</p>
+                    <div class="feature-tag">Pro Feature</div>
+                </div>
+                <div class="bento-card feature-card-new">
+                    <div class="feature-icon-new">📄</div>
+                    <h3>ATS Resume Analyzer</h3>
+                    <p class="instruction-desc">Upload your resume and get a full ATS audit — keyword gaps, STAR bullet
+                        rewrites, and a score out of 100 for your target job role.</p>
+                    <div class="feature-tag">Free Tool</div>
+                </div>
+                <div class="bento-card feature-card-new">
+                    <div class="feature-icon-new">🏆</div>
+                    <h3>XP & Gamification</h3>
+                    <p class="instruction-desc">Earn skill points for completing milestones, submitting reviews, and
+                        mastering weeks. Track your progress across all your projects.</p>
+                    <div class="feature-tag">Retention</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ TESTIMONIALS ═══ -->
+        <section class="testimonials-section animate-fade-in stagger-3" id="testimonials">
+            <div class="max-width-container">
+                <div class="section-header-centered">
+                    <div class="sticker-badge gold">Real Students. Real Results.</div>
+                    <h2 class="section-title">What Builders Are Saying</h2>
+                </div>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"I pasted my Operating Systems syllabus and got a complete
+                            process scheduler project with a full week-by-week roadmap in under 2 minutes. I showed it
+                            to my interviewer at TCS and they were genuinely impressed."</div>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar">A</div>
+                            <div>
+                                <div class="testimonial-name">Arjun S.</div>
+                                <div class="testimonial-role">Final Year CSE · VIT Vellore</div>
+                            </div>
+                            <div class="testimonial-stars">★★★★★</div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"My ATS score went from 42 to 81 after running the analyzer and
+                            fixing my bullet points. I got 3 interview calls the following week that I had never gotten
+                            before with my old resume."</div>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar" style="background:rgba(47,128,237,0.15);color:#2f80ed;">P
+                            </div>
+                            <div>
+                                <div class="testimonial-name">Priya M.</div>
+                                <div class="testimonial-role">MCA Student · SRM University</div>
+                            </div>
+                            <div class="testimonial-stars">★★★★★</div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="testimonial-quote">"I had zero projects before campus placements started. Resumeint
+                            gave me 3 real GitHub projects from my DBMS, Networks, and Web Dev syllabi. Got placed in
+                            Infosys. This tool is unfair advantage."</div>
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar" style="background:rgba(48,209,88,0.15);color:#30d158;">R
+                            </div>
+                            <div>
+                                <div class="testimonial-name">Rahul K.</div>
+                                <div class="testimonial-role">B.Tech CSE · Amrita University</div>
+                            </div>
+                            <div class="testimonial-stars">★★★★★</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ PRICING TEASER ═══ -->
+        <section class="max-width-container pricing-teaser-section animate-fade-in stagger-1" id="pricing-teaser">
+            <div class="pricing-teaser-card">
+                <div class="pricing-teaser-left">
+                    <div class="sticker-badge gold">Transparent Pricing</div>
+                    <h2>Start Free. Upgrade When Ready.</h2>
+                    <p>The free plan gives you everything you need to try the platform. Pro unlocks unlimited projects,
+                        deep AI reviews, and GitHub sync — for less than a pizza.</p>
+                    <div class="pricing-tiers-preview">
+                        <div class="tier-preview">
+                            <div class="tier-preview-name">Explorer</div>
+                            <div class="tier-preview-price">₹0 <span>forever</span></div>
+                            <ul class="tier-preview-list">
+                                <li>✅ 1 Project Architecture</li>
+                                <li>✅ Interactive Roadmap</li>
+                                <li>✅ Basic AI Feedback</li>
+                                <li>✅ ATS Resume Analyzer</li>
+                            </ul>
+                            <a href="register.html" class="btn btn-outline btn-full">Start Free</a>
+                        </div>
+                        <div class="tier-preview tier-preview-pro">
+                            <div class="tier-preview-badge">MOST POPULAR</div>
+                            <div class="tier-preview-name" style="color:var(--accent-gold);">Architect Pro</div>
+                            <div class="tier-preview-price">₹49 <span>/month</span></div>
+                            <ul class="tier-preview-list">
+                                <li>✨ Unlimited Projects</li>
+                                <li>✨ Deep AI Code Reviews</li>
+                                <li>✨ 1-Click GitHub Sync</li>
+                                <li>✨ Priority AI Engine</li>
+                            </ul>
+                            <a href="pricing.html" class="btn btn-primary btn-full btn-glow">Upgrade for ₹49</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ FAQ ═══ -->
+        <section class="max-width-container faq-section animate-fade-in stagger-2" id="faq">
+            <div class="section-header-centered">
+                <h2 class="section-title">Frequently Asked Questions</h2>
+            </div>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Will my college or interviewer know this was AI-generated?
+                        <span class="faq-chevron">▾</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>No. Resumeint generates a project <em>idea and roadmap</em> — but you build the actual code
+                            yourself, week by week. The AI acts like a senior engineer guiding you, not doing the work
+                            for you. Your project is genuinely yours.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        What tech stacks does Resumeint support?
+                        <span class="faq-chevron">▾</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>The AI adapts to your syllabus. Common stacks generated include MySQL/PostgreSQL +
+                            Node.js/FastAPI/Django, React frontends, REST APIs, and more. You can also specify your
+                            preferred stack when setting up a project.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Is my resume data secure when I upload it?
+                        <span class="faq-chevron">▾</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes. Your uploaded resume is processed in memory for analysis and is not stored on our
+                            servers after the session. We never share your data with third parties. Read our <a
+                                href="privacy.html">Privacy Policy</a> for full details.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Can I use Resumeint for non-CS/IT courses?
+                        <span class="faq-chevron">▾</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Currently Resumeint is optimized for Computer Science, IT, and related engineering courses.
+                            We're working on expanding to Data Science, Electronics, and other disciplines.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        What's the difference between Basic and Deep AI Code Review?
+                        <span class="faq-chevron">▾</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Basic review (free) gives general feedback on correctness and style. Deep review (Pro) runs
+                            on a more powerful AI model and gives architecture-level critique, security analysis,
+                            performance optimization tips, and specific line-level suggestions.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        How do I cancel or get a refund?
+                        <span class="faq-chevron">▾</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p>You can cancel your Pro subscription anytime. We offer a 7-day refund policy — if you're not
+                            satisfied, email us and we'll refund you, no questions asked.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ FINAL CTA ═══ -->
+        <section class="final-cta-section animate-fade-in stagger-3">
+            <div class="max-width-container final-cta-inner">
+                <div class="final-cta-glow"></div>
+                <h2 class="final-cta-title">Placement Season Won't Wait.<br>Neither Should You.</h2>
+                <p class="final-cta-sub">Join 500+ students already building job-ready portfolios. Free to start —
+                    upgrade anytime.</p>
+                <div class="final-cta-actions">
+                    <a href="register.html" class="btn btn-primary btn-large btn-glow" id="final-cta">Build My Portfolio
+                        Free →</a>
+                    <a href="resume-analyser.html" class="btn btn-outline btn-large">Check My ATS Score</a>
+                </div>
+                <div class="final-cta-note">No credit card · Free plan · Takes 2 minutes</div>
+            </div>
+        </section>
     </main>
-    <footer class="footer-section animate-fade-in stagger-2">
+
+    <footer class="footer-section animate-fade-in">
         <div class="max-width-container footer-content">
             <div class="footer-brand">
-                <a href="index.html" class="logo"><img src="assets/logo.png" alt="Resumeint"
-                        style="height: 32px; filter: drop-shadow(0 0 8px rgba(212,162,78,0.2));"></a>
-                <p>Architecting the next generation of world-class engineers through project-based mastery.</p>
+                <a href="index.html" class="logo">
+                    <img src="assets/logo.png" alt="Resumeint"
+                        style="height: 32px; filter: drop-shadow(0 0 8px rgba(212, 162, 78, 0.2));">
+                </a>
+                <p>Turn your college coursework into a career.<br>Built by a student, for students.</p>
+                <div class="footer-social-row">
+                    <a href="https://github.com" target="_blank" rel="noopener" class="footer-social-link"
+                        aria-label="GitHub">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        </svg>
+                    </a>
+                    <a href="https://linkedin.com" target="_blank" rel="noopener" class="footer-social-link"
+                        aria-label="LinkedIn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                        </svg>
+                    </a>
+                    <a href="https://twitter.com" target="_blank" rel="noopener" class="footer-social-link"
+                        aria-label="Twitter">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                    </a>
+                </div>
             </div>
             <div class="footer-links">
                 <div class="footer-col">
                     <h4>Platform</h4>
                     <a href="pricing.html">Pricing</a>
                     <a href="dashboard.html">Dashboard</a>
+                    <a href="resume-analyser.html">ATS Analyzer</a>
+                    <a href="upload.html">New Project</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Learn</h4>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#faq">FAQ</a>
+                    <a href="#features">Features</a>
                 </div>
                 <div class="footer-col">
                     <h4>Legal</h4>
@@ -104,16 +658,78 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 Resumeint. All rights reserved.</p>
+            <p>© 2026 Resumeint. Built for ambitious engineers. · <a
+                    href="mailto:support@resumeint.com">support@resumeint.com</a></p>
         </div>
     </footer>
+
+    <!-- Mobile Sticky CTA -->
+    <div class="mobile-sticky-cta" id="mobile-sticky-cta">
+        <a href="register.html" class="btn btn-primary btn-glow mobile-sticky-btn">Build My Portfolio Free →</a>
+    </div>
+
     <script src="js/app.js"></script>
     <script>
+        // Mobile nav toggle
         document.getElementById('mobile-toggle').addEventListener('click', function () {
             const menu = document.getElementById('mobile-menu');
             const isOpen = menu.classList.toggle('active');
             this.textContent = isOpen ? '✕' : '☰';
         });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Demo tab switching
+        document.querySelectorAll('.demo-tab').forEach(tab => {
+            tab.addEventListener('click', function () {
+                const step = this.dataset.step;
+                document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.demo-step-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('demo-step-' + step).classList.add('active');
+            });
+        });
+
+        // Auto-cycle demo tabs every 3.5s
+        let demoStep = 0;
+        const demoCycle = setInterval(() => {
+            demoStep = (demoStep + 1) % 3;
+            document.querySelectorAll('.demo-tab')[demoStep].click();
+        }, 3500);
+
+        // FAQ accordion
+        document.querySelectorAll('.faq-question').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const item = this.closest('.faq-item');
+                const isOpen = item.classList.contains('open');
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+                document.querySelectorAll('.faq-question').forEach(b => b.setAttribute('aria-expanded', 'false'));
+                if (!isOpen) {
+                    item.classList.add('open');
+                    this.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+
+        // Show/hide mobile sticky CTA
+        const stickyCTA = document.getElementById('mobile-sticky-cta');
+        const hero = document.getElementById('hero');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                stickyCTA.classList.add('visible');
+            } else {
+                stickyCTA.classList.remove('visible');
+            }
+        }, { passive: true });
     </script>
 </body>
 

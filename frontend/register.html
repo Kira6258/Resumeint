@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register — Resumeint</title>
-    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <title>Create Free Account — Resumeint | AI Portfolio Builder for CS Students</title>
+    <meta name="description" content="Join 500+ CS students building job-ready portfolios. Sign up free — no credit card required. AI generates your project roadmap from your college syllabus.">
+    <meta property="og:title" content="Join Resumeint Free — AI Portfolio Builder for Students">
+    <meta property="og:description" content="Paste your syllabus, get a production-ready project roadmap in minutes. Free for students.">
+    <link rel="canonical" href="https://resumeint.com/register.html">
+    <link rel="stylesheet" href="css/style.css?v=51.0">
     <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
 <body class="auth-body">
@@ -12,8 +16,8 @@
     <main class="auth-main-wrap fade-up">
         <div class="auth-card glass-card">
             <a href="index.html" class="logo auth-logo"><img src="assets/logo.png" alt="Resumeint" style="height: 64px;"></a>
-            <h1 class="auth-headline">Join Resumeint</h1>
-            <p class="auth-sub">Start architecting your world-class portfolio today.</p>
+            <h1 class="auth-headline">Start Building Free</h1>
+            <p class="auth-sub">Join 500+ students turning their syllabi into job-ready portfolios.</p>
             <form id="register-form" class="auth-form-block">
                 <div class="form-group">
                     <label class="form-label-v2">Full Name</label>
@@ -44,8 +48,12 @@
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google">
                 Continue with Google
             </a>
+            <div class="auth-social-proof">
+                <span class="asp-dot"></span><span class="asp-dot"></span><span class="asp-dot"></span>
+                <span class="asp-text">500+ students already building · Free forever plan</span>
+            </div>
             <div class="auth-footer-note">
-                Already an architect? <a href="login.html" class="auth-link-gold">Login Here</a>
+                Already have an account? <a href="login.html" class="auth-link-gold">Login Here</a>
             </div>
         </div>
     </main>
@@ -91,8 +99,17 @@
                     })
                 });
                 if (res.ok) {
-                    showToast("Account Created", "Welcome to Resumeint! Please login.", "success");
-                    setTimeout(() => window.location.href = 'login.html', 1500);
+                    const data = await res.json();
+                    // Auto-login: store token and go directly to dashboard
+                    if (data.access_token) {
+                        localStorage.setItem('token', data.access_token);
+                        showToast("Welcome to Resumeint! 🎉", "Your account is ready. Let's build!", "success");
+                        setTimeout(() => window.location.href = 'dashboard.html', 1200);
+                    } else {
+                        // Fallback: redirect to login if no token returned
+                        showToast("Account Created!", "Please log in to continue.", "success");
+                        setTimeout(() => window.location.href = 'login.html', 1500);
+                    }
                 } else {
                     const err = await res.json();
                     showToast("Error", err.detail || "Email may already be registered.", "error");
@@ -111,13 +128,13 @@
         align-items: center;
         justify-content: center;
         background: var(--bg-primary);
-        background-image: radial-gradient(at 50% 0%, rgba(212,162,78,0.06) 0, transparent 60%);
+        background-image: radial-gradient(at 50% 0%, rgba(212, 162, 78, 0.06) 0, transparent 60%);
         padding: var(--space-24);
     }
     .auth-bg-glow {
         position: fixed; top: 0; left: 50%; transform: translateX(-50%);
         width: 600px; height: 300px;
-        background: radial-gradient(circle, rgba(212,162,78,0.07) 0, transparent 70%);
+        background: radial-gradient(circle, rgba(212, 162, 78, 0.07) 0, transparent 70%);
         pointer-events: none; z-index: 0;
     }
     .auth-main-wrap { width: 100%; max-width: 460px; position: relative; z-index: 1; }
@@ -136,6 +153,16 @@
     .auth-divider { display: flex; align-items: center; gap: var(--space-16); margin: var(--space-24) 0; }
     .divider-line { flex: 1; height: 1px; background: var(--border-muted); }
     .divider-text { font-size: 0.7rem; font-weight: 800; color: var(--text-tertiary); letter-spacing: 0.08em; }
+    .auth-social-proof {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        margin: var(--space-24) 0 var(--space-16);
+    }
+    .asp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-gold); opacity: 0.5; }
+    .asp-text { font-size: 0.75rem; color: var(--text-tertiary); font-weight: 500; }
+    @media (max-width: 480px) {
+        .auth-card { padding: var(--space-24); }
+    }
     </style>
 </body>
 </html>
+

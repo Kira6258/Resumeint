@@ -415,7 +415,7 @@ async function openRazorpay(plan, onSuccess) {
             name: 'Resumeint',
             description: `Architect Pro ${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan`,
             order_id: orderId,
-            theme: { color: '#D4A24E' },
+            theme: { color: '#d4a24e' },
             handler: async function (response) {
                 try {
                     const verifyRes = await fetchWithAuth('/api/verify-payment', {
@@ -480,3 +480,4 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', toggleTheme);
     });
 });
+
