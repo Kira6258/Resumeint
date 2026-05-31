@@ -235,7 +235,7 @@ async def google_callback(request: Request, response: Response, db: Session = De
         # Create JWT
         jwt_token = auth.create_access_token(data={"sub": db_user.email})
         
-        response = RedirectResponse(url="/dashboard.html")
+        response = RedirectResponse(url=f"/dashboard.html?token={jwt_token}")
         response.set_cookie(
             key="jwt_token",
             value=jwt_token,

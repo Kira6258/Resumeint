@@ -169,6 +169,16 @@ async function fetchWithAuth(url, options = {}) {
 const PROTECTED_PAGES = ['dashboard.html', 'upload.html', 'project.html', 'checkin.html', 'feedback.html', 'profile.html', 'resume-analyser.html'];
 
 async function checkAuth() {
+    // Extract token from query parameters (e.g., after Google OAuth redirection)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get('token');
+    if (urlToken) {
+        localStorage.setItem(TOKEN_KEY, urlToken);
+        // Clean URL to remove token from address bar
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+
     const token = localStorage.getItem(TOKEN_KEY);
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     const isProtected = PROTECTED_PAGES.some(p => currentPage.includes(p));
