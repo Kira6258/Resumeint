@@ -144,9 +144,9 @@ async function fetchWithAuth(url, options = {}) {
 
         if (res.status === 401) {
             localStorage.removeItem(TOKEN_KEY);
-            // Only redirect if not already on public pages
             const publicPages = ['login.html', 'register.html', 'index.html', 'forgot-password.html', 'reset-password.html'];
-            const isPublic = publicPages.some(page => window.location.pathname.includes(page));
+            const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+            const isPublic = publicPages.includes(currentPath);
             
             if (!isPublic) {
                 window.location.href = 'login.html';
@@ -247,7 +247,7 @@ function initLogout() {
                 await fetchWithAuth('/auth/logout');
             } catch (err) {}
             localStorage.removeItem(TOKEN_KEY);
-            window.location.href = 'index.html';
+            window.location.href = '/';
         });
     });
 }

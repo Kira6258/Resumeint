@@ -302,6 +302,10 @@ app.include_router(api_router, prefix="/api")
 app.include_router(payments_router, prefix="/api/payments")
 
 # 3. Static Files (Served at root)
+@app.get("/index.html", response_class=RedirectResponse)
+async def redirect_index():
+    return RedirectResponse(url="/", status_code=301)
+
 # Mounting at "/" must come LAST so API routes take precedence
 app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
 
