@@ -38,11 +38,11 @@ def check_requirements():
         print("\033[93m[WARNING] .env file not found in root directory!\033[0m")
         print("Please run 'python setup.py' to configure your environment.")
     else:
-        # Check if GEMINI_API_KEY is present
+        # Check if GROQ_API_KEY is present
         with open(".env", "r") as f:
-            if "GEMINI_API_KEY" not in f.read():
-                print("\033[93m[WARNING] GEMINI_API_KEY not found in .env!\033[0m")
-                print("Please run 'python setup.py' to add your free Google API key.")
+            if "GROQ_API_KEY" not in f.read():
+                print("\033[93m[WARNING] GROQ_API_KEY not found in .env!\033[0m")
+                print("Please run 'python setup.py' to add your Groq API key.")
             else:
                 print("\033[92m[OK] Environment variables (.env) ready.\033[0m")
 

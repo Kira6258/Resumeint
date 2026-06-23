@@ -15,10 +15,10 @@ def check_setup():
         return
     load_dotenv(".env")
     
-    # Gemini
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or api_key == "NOT_SET":
-        print("[X] FAIL: GEMINI_API_KEY is not set in .env")
+    # Groq
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "NOT_SET" or api_key == "gsk_your_groq_api_key_here":
+        print("[X] FAIL: GROQ_API_KEY is not set or is still the placeholder in .env")
         return
         
     # Razorpay
@@ -30,17 +30,24 @@ def check_setup():
     print(f"[OK] .env loaded.")
 
     # 2. Check API Key Validity
-    print("\n[2/3] Checking Gemini API Key validity...")
-    # Trying v1beta which is common for AI Studio keys
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    print("\n[2/3] Checking Groq API Key validity...")
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama-3.1-8b-instant",
+        "messages": [{"role": "user", "content": "hi"}]
+    }
     try:
-        res = requests.post(url, json={"contents": [{"parts": [{"text": "hi"}]}]}, timeout=10)
+        res = requests.post(url, headers=headers, json=payload, timeout=10)
         if res.status_code == 200:
-            print("[OK] SUCCESS: Your API Key is ACTIVE and working!")
+            print("[OK] SUCCESS: Your Groq API Key is ACTIVE and working!")
         else:
-            print(f"[X] FAIL: Google rejected your key (Error {res.status_code})")
+            print(f"[X] FAIL: Groq rejected your key (Error {res.status_code})")
             print(f"    Message: {res.json().get('error', {}).get('message', 'Unknown Error')}")
-            print("\n    TIP: Get a fresh key at https://aistudio.google.com/app/apikey")
+            print("\n    TIP: Get a fresh key at https://console.groq.com/")
     except Exception as e:
         print(f"[X] FAIL: Connection error ({e})")
 

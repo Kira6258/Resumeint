@@ -8,57 +8,70 @@ import io
 
 # Model priority list — tries each in order until one succeeds
 MODELS_TO_TRY = [
-    "models/gemini-2.5-flash",
-    "models/gemini-2.0-flash",
-    "models/gemini-1.5-flash",
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "mixtral-8x7b-32768",
 ]
 
 
-def _call_gemini(prompt: str) -> Optional[str]:
+def _call_groq(prompt: str, json_mode: bool = False) -> Optional[str]:
     """
-    Calls Gemini API 
+    Calls Groq API.
     Returns the raw text response or None on failure.
     """
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or api_key == "NOT_SET":
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "NOT_SET" or api_key == "gsk_your_groq_api_key_here":
         return None
 
     # Try SDK first
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
+        from groq import Groq
+        client = Groq(api_key=api_key)
 
         for model_name in MODELS_TO_TRY:
-            short_name = model_name.replace("models/", "")
             try:
-                print(f"\033[90m[AI] Trying SDK: {short_name}...\033[0m")
-                model = genai.GenerativeModel(short_name)
-                response = model.generate_content(prompt)
-                text = response.text.strip()
-                print(f"\033[92m[AI] SUCCESS via SDK: {short_name}\033[0m")
+                print(f"\033[90m[AI] Trying SDK: {model_name} (JSON: {json_mode})...\033[0m")
+                kwargs = {
+                    "messages": [{"role": "user", "content": prompt}],
+                    "model": model_name,
+                }
+                if json_mode:
+                    kwargs["response_format"] = {"type": "json_object"}
+                
+                response = client.chat.completions.create(**kwargs)
+                text = response.choices[0].message.content.strip()
+                print(f"\033[92m[AI] SUCCESS via SDK: {model_name}\033[0m")
                 return text
             except Exception as e:
-                print(f"\033[93m[AI] SDK {short_name} failed: {type(e).__name__}: {e}\033[0m")
+                print(f"\033[93m[AI] SDK {model_name} failed: {type(e).__name__}: {e}\033[0m")
                 continue
     except ImportError:
-        print("\033[93m[AI] google-generativeai SDK not installed, falling back to REST.\033[0m")
+        print("\033[93m[AI] groq SDK not installed, falling back to REST.\033[0m")
 
     # REST fallback
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
     for model_name in MODELS_TO_TRY:
-        for version in ["v1beta", "v1"]:
-            url = f"https://generativelanguage.googleapis.com/{version}/{model_name}:generateContent?key={api_key}"
-            try:
-                print(f"\033[90m[AI] Trying REST: {model_name} on {version}...\033[0m")
-                response = requests.post(url, json=payload, timeout=60)
-                if response.status_code == 200:
-                    text = response.json()['candidates'][0]['content']['parts'][0]['text'].strip()
-                    print(f"\033[92m[AI] SUCCESS via REST: {model_name} on {version}\033[0m")
-                    return text
-                print(f"\033[93m[AI] REST {model_name} on {version} -> {response.status_code}\033[0m")
-            except Exception as e:
-                print(f"\033[91m[AI] REST failed for {model_name}: {e}\033[0m")
-                continue
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": model_name,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
+        try:
+            print(f"\033[90m[AI] Trying REST: {model_name}...\033[0m")
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            if response.status_code == 200:
+                text = response.json()["choices"][0]["message"]["content"].strip()
+                print(f"\033[92m[AI] SUCCESS via REST: {model_name}\033[0m")
+                return text
+            print(f"\033[93m[AI] REST {model_name} -> {response.status_code}: {response.text}\033[0m")
+        except Exception as e:
+            print(f"\033[91m[AI] REST failed for {model_name}: {e}\033[0m")
+            continue
     return None
 
 
@@ -97,9 +110,9 @@ async def generate_project_suggestions(syllabus_text: str) -> Dict[str, Any]:
     """
     Step 1: Generate project suggestions from a syllabus.
     """
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or api_key == "NOT_SET":
-        return {"error": "Google API Key is missing. Please update your .env file."}
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "NOT_SET" or api_key == "gsk_your_groq_api_key_here":
+        return {"error": "Groq API Key is missing. Please update your .env file."}
 
     prompt = f"""You are an expert project architect for computer science students.
     
@@ -131,9 +144,9 @@ async def generate_project_suggestions(syllabus_text: str) -> Dict[str, Any]:
     Ensure exactly 5 suggestions are returned in the list. Do not include any other text or markdown formatting.
     """
 
-    raw = _call_gemini(prompt)
+    raw = _call_groq(prompt, json_mode=True)
     if raw is None:
-        return {"error": "All Gemini models failed. Please verify your API key and try again."}
+        return {"error": "All Groq models failed. Please verify your API key and try again."}
 
     data = _parse_json(raw)
     if data is None:
@@ -146,9 +159,9 @@ async def generate_full_roadmap(syllabus_text: str, chosen_project: Dict, durati
     """
     Step 2: Given the user's chosen project, generate a full roadmap for the specified duration.
     """
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or api_key == "NOT_SET":
-        return {"error": "Google API Key is missing. Please update your .env file."}
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "NOT_SET" or api_key == "gsk_your_groq_api_key_here":
+        return {"error": "Groq API Key is missing. Please update your .env file."}
 
     prompt = f"""You are an expert project architect. A student(for his final year project) has chosen the following project for their course:
 
@@ -188,9 +201,9 @@ Return ONLY valid JSON (no markdown, no code fences) with this exact structure:
 Make the milestones specific and actionable. Each hint should help the student get started on that week's work.
 If this project does not require a database (like a static HTML site), set "mysql_schema" to an empty string ""."""
 
-    raw = _call_gemini(prompt)
+    raw = _call_groq(prompt, json_mode=True)
     if raw is None:
-        return {"error": "All Gemini models failed. Please verify your API key and try again."}
+        return {"error": "All Groq models failed. Please verify your API key and try again."}
 
     data = _parse_json(raw)
     if data is None:
@@ -203,9 +216,9 @@ async def generate_roadmap(syllabus_text: str, duration_weeks: int = 4) -> Dict[
     """
     Legacy single-shot roadmap generation (fallback).
     """
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or api_key == "NOT_SET":
-        return {"error": "Google API Key is missing. Please update your .env file."}
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "NOT_SET" or api_key == "gsk_your_groq_api_key_here":
+        return {"error": "Groq API Key is missing. Please update your .env file."}
 
     prompt = f"""You are an expert project architect. Analyze this course syllabus and generate a structured 4-week project plan.
 
@@ -239,9 +252,9 @@ Return ONLY valid JSON (no markdown, no code fences) with this exact structure:
 
 If this project does not require a database, set "mysql_schema" to an empty string ""."""
 
-    raw = _call_gemini(prompt)
+    raw = _call_groq(prompt, json_mode=True)
     if raw is None:
-        return {"error": "All Gemini models failed. Please verify your API key and try again."}
+        return {"error": "All Groq models failed. Please verify your API key and try again."}
 
     data = _parse_json(raw)
     if data is None:
@@ -252,8 +265,8 @@ If this project does not require a database, set "mysql_schema" to an empty stri
 
 async def stream_code_review(milestone_goals: str, code_content: str) -> AsyncGenerator[str, None]:
     """Provides AI feedback on submitted code."""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "gsk_your_groq_api_key_here":
         yield "Error: No API key configured."
         return
 
@@ -289,7 +302,7 @@ RULES:
 - Use markdown formatting (**, `, ##)
 - Total response under 250 words"""
 
-    raw = _call_gemini(prompt)
+    raw = _call_groq(prompt, json_mode=False)
     if raw:
         yield raw
     else:
@@ -312,9 +325,9 @@ async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, An
     Analyzes a candidate's resume against a target job role.
     Returns structured suggestions, score, gap list, and bullet point improvements.
     """
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or api_key == "NOT_SET":
-        return {"error": "Google API Key is missing. Please update your .env file."}
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "NOT_SET" or api_key == "gsk_your_groq_api_key_here":
+        return {"error": "Groq API Key is missing. Please update your .env file."}
 
     prompt = f"""You are an elite, senior technical recruiter and ATS (Applicant Tracking System) specialist.
     
@@ -367,9 +380,9 @@ async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, An
     Ensure the JSON is strictly valid. Do not include any other text or markdown formatting outside of the JSON block.
     """
 
-    raw = _call_gemini(prompt)
+    raw = _call_groq(prompt, json_mode=True)
     if raw is None:
-        return {"error": "All Gemini models failed. Please verify your API key."}
+        return {"error": "All Groq models failed. Please verify your API key."}
 
     data = _parse_json(raw)
     if data is None:
@@ -383,8 +396,8 @@ async def stream_mock_interview(project_title: str, schema: str, repo: dict, che
     Manages the mock interview state, evaluates responses, handles strikes,
     and returns a streaming chat response.
     """
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key or api_key == "gsk_your_groq_api_key_here":
         yield "Error: No API key configured."
         return
 
@@ -450,7 +463,7 @@ Chat History:
 
 Provide your next response as the Interviewer. Speak directly as the interviewer, do not speak for the candidate."""
 
-    raw = _call_gemini(prompt)
+    raw = _call_groq(prompt, json_mode=False)
     if raw:
         yield raw
     else:
