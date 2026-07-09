@@ -561,19 +561,38 @@ async def analyze_resume(
         )
 
     # --- 6. Sanity check: does it look like a resume? ---
-    # A resume should have some typical keywords; this prevents random docs being analyzed
-    RESUME_INDICATORS = [
-        "experience", "education", "skills", "project", "work", "university",
-        "college", "bachelor", "master", "engineer", "developer", "intern",
-        "certification", "github", "linkedin", "email", "phone", "resume", "cv"
+    # Split into STRONG resume indicators (highly specific) and COMMON indicators
+    STRONG_RESUME_INDICATORS = [
+        "experience", "education", "skills", "resume", "cv", "curriculum vitae",
+        "work history", "employment", "objective", "summary", "qualifications",
+        "certifications", "achievements", "awards", "references"
+    ]
+    COMMON_RESUME_INDICATORS = [
+        "project", "university", "college", "bachelor", "master", "engineer",
+        "developer", "intern", "github", "linkedin", "gpa", "cgpa",
+        "python", "java", "javascript", "sql", "html", "css", "react",
+        "node", "flask", "django", "aws", "docker", "git"
     ]
     lower_text = clean_text.lower()
-    match_count = sum(1 for kw in RESUME_INDICATORS if kw in lower_text)
-    if match_count < 3:
+    word_count = len(clean_text.split())
+
+    # Must have at least 150 words to be a real resume
+    if word_count < 150:
         raise HTTPException(
             status_code=400,
-            detail="The uploaded document doesn't appear to be a resume. Please upload your actual resume/CV file."
+            detail="The document is too short to be a resume. Please upload your actual resume/CV file."
         )
+
+    strong_matches = sum(1 for kw in STRONG_RESUME_INDICATORS if kw in lower_text)
+    common_matches = sum(1 for kw in COMMON_RESUME_INDICATORS if kw in lower_text)
+
+    # Must have at least 2 strong indicators AND at least 3 common indicators
+    if strong_matches < 2 or common_matches < 3:
+        raise HTTPException(
+            status_code=400,
+            detail="The uploaded document doesn't appear to be a resume. It is missing key resume sections (e.g. Experience, Education, Skills). Please upload your actual resume/CV file."
+        )
+
 
     # --- 7. AI Analysis ---
     analysis = await ai_service.analyze_resume_ats(clean_text, target_role)
