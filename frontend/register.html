@@ -86,27 +86,50 @@
                 showToast("Weak Password", "Password must be at least 8 characters.", "warning");
                 return;
             }
+            const nameVal = document.getElementById('reg-name').value.trim();
+            if (nameVal.length < 2) {
+                showToast("Invalid Name", "Please enter a valid full name (at least 2 characters).", "warning");
+                return;
+            }
+
             const btn = document.getElementById('reg-submit-btn');
             setButtonLoading(btn, true, "Provisioning Profile...");
             try {
+                // 1. Create the account
                 const res = await fetch('/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        name: document.getElementById('reg-name').value,
+                        name: nameVal,
                         email: document.getElementById('reg-email').value,
                         password: password
                     })
                 });
+                
                 if (res.ok) {
-                    const data = await res.json();
-                    // Auto-login: store token and go directly to dashboard
-                    if (data.access_token) {
-                        localStorage.setItem('token', data.access_token);
-                        showToast("Welcome to Resumeint! 🎉", "Your account is ready. Let's build!", "success");
-                        setTimeout(() => window.location.href = 'dashboard.html', 1200);
+                    // 2. Automatically log the user in to get the JWT token
+                    const loginRes = await fetch('/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: document.getElementById('reg-email').value,
+                            password: password
+                        })
+                    });
+
+                    if (loginRes.ok) {
+                        const data = await loginRes.json();
+                        if (data.access_token) {
+                            localStorage.setItem('token', data.access_token);
+                            showToast("Welcome to Resumeint! 🎉", "Your account is ready. Let's build!", "success");
+                            setTimeout(() => window.location.href = 'dashboard.html', 1200);
+                        } else {
+                            // Fallback: redirect to login if no token returned
+                            showToast("Account Created!", "Please log in to continue.", "success");
+                            setTimeout(() => window.location.href = 'login.html', 1500);
+                        }
                     } else {
-                        // Fallback: redirect to login if no token returned
+                        // Registration worked but login failed
                         showToast("Account Created!", "Please log in to continue.", "success");
                         setTimeout(() => window.location.href = 'login.html', 1500);
                     }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weekly Check-in — Resumeint</title>
-    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="stylesheet" href="css/style.css?v=51.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
@@ -245,10 +245,23 @@
             updateLineNumbers(codeArea);
         }
         document.getElementById('submit-btn').addEventListener('click', async () => {
-            const code = codeArea.value;
+            const code = codeArea.value.trim();
             const github = document.getElementById('github-link').value;
             const btn = document.getElementById('submit-btn');
             const btnText = document.getElementById('submit-btn-text');
+
+            // Validate week selection
+            if (!currentWeek) {
+                showToast("Select a Week", "Please select which week you are submitting for.", "warning");
+                return;
+            }
+            // Validate minimum code length
+            if (!code || code.length < 30) {
+                showToast("Code Required", "Please paste at least 30 characters of code or implementation notes before submitting.", "warning");
+                document.getElementById('code-snippet').focus();
+                return;
+            }
+
             try {
                 setButtonLoading(btn, true, 'Analyzing...');
                 const res = await fetchWithAuth('/api/checkins', {

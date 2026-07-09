@@ -43,6 +43,7 @@ def verify_token(token: str):
     except JWTError:
         return None
 
+
 async def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
     Dependency that retrieves the current authenticated user.
@@ -50,7 +51,7 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
     auth_header = request.headers.get("Authorization")
     token = None
-    
+
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         logger.debug("[AUTH] Found Bearer token in header")
@@ -65,25 +66,38 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
             if not cookie_names:
                 logger.debug("[TIP] Ensure you are using http://127.0.0.1:8000 and NOT localhost!")
 
-        
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     payload = verify_token(token)
     if not payload:
-        logger.debug("[AUTH] Token verification failed (invalid or expired)")
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    
+        logger.debug("[AUTH] Token verification failed — likely expired")
+        raise HTTPException(
+            status_code=401,
+            detail="Your session has expired. Please log in again."
+        )
+
     email = payload.get("sub")
-    logger.debug(f"[AUTH] Token valid for user: {email}")
-    
     if not email:
         raise HTTPException(status_code=401, detail="Token missing identity")
 
+    logger.debug(f"[AUTH] Token valid for: {email}")
+
+    # Expire the cached ORM state to always fetch the freshest user record
+    db.expire_all()
     user = crud.get_user_by_email(db, email)
+
     if not user:
-        logger.warning(f"[AUTH] User not found in database for email: {email}")
-        raise HTTPException(status_code=401, detail="User not found")
-        
+        # This can happen if the DB was wiped/reset while the token was still valid.
+        # Log prominently so devs can diagnose.
+        logger.error(
+            f"[AUTH] CRITICAL: Valid JWT for '{email}' but user NOT FOUND in database. "
+            "This may indicate a DB reset or data loss. User will be logged out."
+        )
+        raise HTTPException(
+            status_code=401,
+            detail="Account not found. Your session may be invalid. Please register or log in again."
+        )
+
     return user
 

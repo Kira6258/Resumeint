@@ -76,7 +76,11 @@ async def verify_payment(request: Request, db: Session = Depends(get_db), curren
             'razorpay_signature':  razorpay_signature
         }
         client.utility.verify_payment_signature(params_dict)
+    except Exception as e:
+        print(f"[PAYMENTS] Signature verification failed: {e}")
+        raise HTTPException(status_code=400, detail="Payment signature verification failed. Please contact support if you were charged.")
 
+    try:
         expires_at = datetime.utcnow() + timedelta(days=plan["duration_days"])
         crud.update_user_subscription(
             db,
@@ -86,10 +90,14 @@ async def verify_payment(request: Request, db: Session = Depends(get_db), curren
             razorpay_sub_id=f"order_{razorpay_order_id}",    # Store order ID for audit trail
             expires_at=expires_at
         )
-
-        return {"message": f"Payment verified — {plan['label']} active!", "status": "success"}
     except Exception as e:
-        print(f"Verification Error: {e}")
-        raise HTTPException(status_code=400, detail="Payment verification failed")
+        print(f"[PAYMENTS] DB update failed after verified payment: {e}")
+        # Payment succeeded but DB write failed — don't show generic error
+        raise HTTPException(
+            status_code=500,
+            detail="Payment was successful but we had trouble activating your subscription. Please contact support with your payment ID."
+        )
+
+    return {"message": f"Payment verified — {plan['label']} active!", "status": "success"}
 
 

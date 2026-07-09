@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile Settings — Resumeint</title>
-    <link rel="stylesheet" href="css/style.css?v=50.0">
+    <link rel="stylesheet" href="css/style.css?v=51.0">
     <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
 <body class="animate-in">
@@ -155,7 +155,7 @@
             </p>
             <div class="modal-actions">
                 <button id="cancel-delete" class="btn btn-outline">Cancel</button>
-                <button id="confirm-delete" class="btn btn-danger">Yes, Send Email</button>
+                <button id="confirm-delete" class="btn btn-danger">Yes, Delete Account</button>
             </div>
         </div>
     </div>
@@ -170,16 +170,25 @@
         cancelDelete.onclick = () => deleteModal.classList.remove('active');
         confirmDelete.onclick = async () => {
             confirmDelete.disabled = true;
-            confirmDelete.innerText = "Sending...";
+            confirmDelete.innerText = "Deleting...";
             try {
-                // In a real app, this would hit /api/account/delete-request
-                showToast("Request Sent", "A confirmation link has been sent to your email.", "success");
-                setTimeout(() => deleteModal.classList.remove('active'), 2000);
+                const res = await fetchWithAuth('/api/account/delete', { method: 'DELETE' });
+                if (res.ok) {
+                    showToast("Account Deleted", "Your account and all data have been permanently removed.", "success");
+                    setTimeout(() => {
+                        localStorage.removeItem('token');
+                        window.location.href = 'register.html';
+                    }, 1800);
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    showToast("Error", err.detail || "Could not delete account. Please contact support.", "error");
+                    deleteModal.classList.remove('active');
+                }
             } catch (err) {
-                showToast("Error", "Could not process request.", "error");
+                showToast("Error", "Network error. Please try again.", "error");
             } finally {
                 confirmDelete.disabled = false;
-                confirmDelete.innerText = "Yes, Send Email";
+                confirmDelete.innerText = "Yes, Delete Account";
             }
         };
         async function loadProfile() {

@@ -73,11 +73,25 @@ def update_user_subscription(db: Session, user_id: int, tier: str, razorpay_cust
     db_user = get_user(db, user_id)
     if db_user:
         db_user.subscription_tier = tier
-        db_user.razorpay_customer_id = razorpay_cust_id
-        db_user.razorpay_subscription_id = razorpay_sub_id
         db_user.subscription_expires_at = expires_at
-        db.commit()
-        db.refresh(db_user)
+        # Only update razorpay IDs if they are new to avoid UNIQUE constraint violations
+        if razorpay_cust_id and db_user.razorpay_customer_id != razorpay_cust_id:
+            db_user.razorpay_customer_id = razorpay_cust_id
+        if razorpay_sub_id and db_user.razorpay_subscription_id != razorpay_sub_id:
+            db_user.razorpay_subscription_id = razorpay_sub_id
+        try:
+            db.commit()
+            db.refresh(db_user)
+        except Exception as e:
+            db.rollback()
+            print(f"[CRUD] Subscription update conflict (ignoring Razorpay ID conflict): {e}")
+            # Still update tier and expiry even if razorpay IDs conflict
+            db_user = get_user(db, user_id)
+            if db_user:
+                db_user.subscription_tier = tier
+                db_user.subscription_expires_at = expires_at
+                db.commit()
+                db.refresh(db_user)
     return db_user
 
 # Project operations
@@ -105,10 +119,12 @@ def create_project(db: Session, project: schemas.ProjectCreate):
     return db_project
 
 def delete_project(db: Session, project_id: int):
-    # Manually delete check-ins first to be absolutely sure
-    db.query(models.CheckIn).filter(models.CheckIn.project_id == project_id).delete()
-    db.query(models.Project).filter(models.Project.id == project_id).delete()
-    db.commit()
+    # Use ORM delete — cascade="all, delete-orphan" on Project.check_ins handles child records automatically
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if project:
+        db.delete(project)
+        db.commit()
+
 
 def update_milestone_progress(db: Session, project: models.Project, week: int, index: int, completed: bool):
     current = project.milestone_progress or {}

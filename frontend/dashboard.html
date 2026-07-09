@@ -124,6 +124,20 @@
     </main>
     <script src="js/app.js"></script>
     <script>
+        // HTML escape helper to prevent XSS from AI-generated project titles/course names
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Cached user data to avoid double /api/me calls
+        let cachedUserData = null;
+
         async function deleteProject(e, projectId) {
             e.preventDefault();
             e.stopPropagation();
@@ -147,12 +161,19 @@
         async function loadDashboard() {
             const projectsGrid = document.getElementById('projects-grid');
             try {
-                const res = await fetchWithAuth('/api/projects');
-                if (!res.ok) throw new Error("Session expired");
-                const projects = await res.json();
-                // Fetch user data for subscription status
-                const userRes = await fetchWithAuth('/api/me');
-                const userData = await userRes.json();
+                // Fetch projects and user data in parallel to save time
+                const [projectsRes, userRes] = await Promise.all([
+                    fetchWithAuth('/api/projects'),
+                    cachedUserData ? Promise.resolve(null) : fetchWithAuth('/api/me')
+                ]);
+
+                if (!projectsRes.ok) throw new Error("Session expired");
+                const projects = await projectsRes.json();
+
+                // Use cached user data if available (from checkAuth), else use fresh fetch
+                const userData = cachedUserData || (userRes && userRes.ok ? await userRes.json() : {});
+                if (!cachedUserData && userData) cachedUserData = userData;
+
                 const subStatus = document.getElementById('subscription-status');
                 const upgradeBtn = document.getElementById('upgrade-btn');
                 if (userData.subscription_tier === 'pro') {
@@ -222,8 +243,8 @@
                                     <div class="sticker-badge-v2">${weekCount}W</div>
                                 </div>
                                 <div class="project-card-content-v2">
-                                    <div class="project-course-v2">${p.course_name}</div>
-                                    <h3 class="project-title-v2">${p.title}</h3>
+                                    <div class="project-course-v2">${escHtml(p.course_name)}</div>
+                                    <h3 class="project-title-v2">${escHtml(p.title)}</h3>
                                 </div>
                                 <div class="project-progress-footer-v2">
                                     <div class="progress-stats-v2">

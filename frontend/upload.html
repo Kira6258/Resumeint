@@ -64,7 +64,7 @@
                 <div style="flex:1;height:1px;background:var(--border-muted);"></div>
             </div>
             <div id="drop-zone" class="upload-dropzone">
-                <input type="file" id="syllabus-file" class="hidden" accept=".pdf,.doc,.docx,.txt">
+                <input type="file" id="syllabus-file" class="hidden" accept=".pdf,.docx,.txt">
                 <div class="upload-dropzone-inner" onclick="document.getElementById('syllabus-file').click()">
                     <div style="font-size:2.5rem;margin-bottom:var(--space-12);">📁</div>
                     <div style="font-weight:700;margin-bottom:var(--space-8);">Click or Drag Architecture Blueprint</div>
@@ -131,7 +131,23 @@
             }
         });
         fileInput.addEventListener('change', () => {
-            if (fileInput.files[0]) fileNameDisp.innerText = `📎 Attached: ${fileInput.files[0].name}`;
+            if (fileInput.files[0]) {
+                const f = fileInput.files[0];
+                const allowedExt = ['.pdf', '.docx', '.txt'];
+                const name = f.name.toLowerCase();
+                const valid = allowedExt.some(ext => name.endsWith(ext));
+                if (!valid) {
+                    fileInput.value = '';
+                    fileNameDisp.innerText = '';
+                    if (name.endsWith('.doc')) {
+                        showToast("Unsupported Format", "The older .doc format isn't supported. Please save your syllabus as .docx or PDF.", "warning");
+                    } else {
+                        showToast("Unsupported Format", "Please upload a PDF, DOCX, or TXT document.", "warning");
+                    }
+                    return;
+                }
+                fileNameDisp.innerText = `📎 Attached: ${f.name}`;
+            }
         });
 
         document.getElementById('generate-btn').addEventListener('click', async () => {

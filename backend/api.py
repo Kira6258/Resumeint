@@ -12,6 +12,7 @@ import schemas
 import auth
 import ai_service
 from pydantic import BaseModel
+from main import limiter
 
 router = APIRouter()
 
@@ -45,6 +46,32 @@ async def change_password(data: schemas.ChangePasswordRequest, db: Session = Dep
         raise HTTPException(status_code=400, detail="Current password is incorrect.")
     crud.update_user_password(db, current_user, data.new_password)
     return {"message": "Password updated successfully."}
+
+
+@router.delete("/account/delete")
+async def delete_account(db: Session = Depends(get_db), current_user=Depends(auth.get_current_user)):
+    """
+    Permanently deletes the authenticated user's account and all associated data.
+    Projects and check-ins are cascade-deleted via the ORM relationship.
+    """
+    try:
+        import models as models_module
+        # Delete all user projects first (cascade handles check_ins)
+        projects = db.query(models_module.Project).filter(models_module.Project.user_id == current_user.id).all()
+        for project in projects:
+            db.delete(project)
+
+        # Delete the user record itself
+        user = db.query(models_module.User).filter(models_module.User.id == current_user.id).first()
+        if user:
+            db.delete(user)
+
+        db.commit()
+        return {"message": "Account and all associated data have been permanently deleted."}
+    except Exception as e:
+        db.rollback()
+        print(f"[ACCOUNT DELETE] Error deleting user {current_user.id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete account. Please try again or contact support.")
 
 
 @router.get("/projects", response_model=List[schemas.ProjectResponse])
@@ -223,6 +250,12 @@ async def submit_checkin(
     db: Session = Depends(get_db),
     current_user=Depends(auth.get_current_user)
 ):
+    """
+    Submits a weekly check-in and automatically triggers AI code review.
+    """
+    if len(code_submitted) > 10000:
+        raise HTTPException(status_code=400, detail="Code submission too large. Please keep it under 10,000 characters.")
+
     # Verify ownership
     project = crud.get_project(db, project_id)
     if not project or project.user_id != current_user.id:
@@ -432,53 +465,122 @@ async def verify_payment_direct(
 
 
 @router.post("/resume/analyze")
+@limiter.limit("5/minute")
 async def analyze_resume(
-    target_role: str = Form(...),
+    request: Request,
+    target_role: Optional[str] = Form(None),
     file: UploadFile = File(...),
-    current_user = Depends(auth.get_current_user)
+    current_user=Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
 ):
     """
     Endpoint to upload a resume and analyze it for a target role using AI.
+    Validates that the uploaded file is actually a readable document (not an image or binary).
     """
+    # --- 0. Validate target role ---
+    target_role = target_role.strip() if target_role else ""
+    if not target_role:
+        raise HTTPException(status_code=400, detail="Target role is required. Please enter a job title (e.g. 'Backend Developer').")
+    if len(target_role) > 200:
+        raise HTTPException(status_code=400, detail="Target role is too long. Please keep it under 200 characters.")
+
+    # --- 1. File size guard (5 MB max) ---
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File is too large. Maximum allowed size is 5 MB.")
 
-    filename = file.filename.lower()
-    extracted_text = ""
+    filename = file.filename.lower() if file.filename else ""
 
-    try:
-        if filename.endswith(".pdf"):
-            extracted_text = await ai_service.extract_text_from_pdf(content)
-        elif filename.endswith(".docx"):
-            extracted_text = await ai_service.extract_text_from_docx(content)
-        elif filename.endswith(".txt"):
-            extracted_text = content.decode("utf-8", errors="ignore")
-        else:
+    # --- 2. Extension whitelist check ---
+    ALLOWED_EXTENSIONS = (".pdf", ".docx", ".txt")
+    if not any(filename.endswith(ext) for ext in ALLOWED_EXTENSIONS):
+        if filename.endswith(".doc"):
             raise HTTPException(
                 status_code=400,
-                detail="Unsupported file format. Please upload a PDF, DOCX, or TXT file."
+                detail="The older .doc format is not supported. Please save your resume as .docx (Word 2007+) or PDF and try again."
             )
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file format. Please upload your resume as a PDF, DOCX, or TXT file."
+        )
+
+    # --- 3. Content-type guard (block images, binaries, etc.) ---
+    content_type = (file.content_type or "").lower()
+    BLOCKED_CONTENT_TYPES = (
+        "image/", "video/", "audio/",
+        "application/zip", "application/x-rar",
+        "application/x-executable", "application/octet-stream"
+    )
+    if any(content_type.startswith(blocked) for blocked in BLOCKED_CONTENT_TYPES):
+        raise HTTPException(
+            status_code=400,
+            detail=f"This looks like a {content_type.split('/')[0]} file, not a resume document. Please upload a PDF, DOCX, or TXT file."
+        )
+
+    # --- 4. Extract text ---
+    extracted_text = ""
+    try:
+        if filename.endswith(".pdf"):
+            # Magic-bytes check for PDF (starts with %PDF)
+            if not content.startswith(b"%PDF"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="The uploaded file does not appear to be a valid PDF. Please check the file and try again."
+                )
+            extracted_text = await ai_service.extract_text_from_pdf(content)
+        elif filename.endswith(".docx"):
+            # Magic-bytes check for DOCX (ZIP-based Office format)
+            if not content.startswith(b"PK"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="The uploaded file does not appear to be a valid DOCX. Please check the file and try again."
+                )
+            extracted_text = await ai_service.extract_text_from_docx(content)
+        elif filename.endswith(".txt"):
+            try:
+                extracted_text = content.decode("utf-8")
+            except UnicodeDecodeError:
+                extracted_text = content.decode("latin-1", errors="ignore")
     except HTTPException as he:
         raise he
     except Exception as e:
-        print(f"Error parsing resume file: {e}")
+        print(f"[RESUME] Error parsing file '{filename}': {e}")
         raise HTTPException(
             status_code=400,
-            detail=f"Failed to parse resume: {str(e)}"
+            detail=f"Failed to read your resume. Make sure the file isn't password-protected or corrupted."
         )
 
-    if not extracted_text or len(extracted_text.strip()) < 50:
+    # --- 5. Minimum text length check ---
+    clean_text = extracted_text.strip()
+    if not clean_text or len(clean_text) < 100:
         raise HTTPException(
             status_code=400,
-            detail="Could not extract enough text from the resume. Please ensure it contains readable text."
+            detail="Could not extract enough readable text from the file. The document may be scanned as an image, password-protected, or not a text-based resume. Try a different file."
         )
 
-    analysis = await ai_service.analyze_resume_ats(extracted_text, target_role)
-    
+    # --- 6. Sanity check: does it look like a resume? ---
+    # A resume should have some typical keywords; this prevents random docs being analyzed
+    RESUME_INDICATORS = [
+        "experience", "education", "skills", "project", "work", "university",
+        "college", "bachelor", "master", "engineer", "developer", "intern",
+        "certification", "github", "linkedin", "email", "phone", "resume", "cv"
+    ]
+    lower_text = clean_text.lower()
+    match_count = sum(1 for kw in RESUME_INDICATORS if kw in lower_text)
+    if match_count < 3:
+        raise HTTPException(
+            status_code=400,
+            detail="The uploaded document doesn't appear to be a resume. Please upload your actual resume/CV file."
+        )
+
+    # --- 7. AI Analysis ---
+    analysis = await ai_service.analyze_resume_ats(clean_text, target_role)
+
     if "error" in analysis:
         raise HTTPException(status_code=500, detail=analysis["error"])
-        
+
     return analysis
 
 

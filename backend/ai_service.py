@@ -336,48 +336,54 @@ async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, An
     
     CRITICAL INSTRUCTIONS:
     - Target Role Alignment: Look for specific keywords, libraries, databases, architectures, and practices expected for a modern "{target_role}" candidate.
-    - Score out of 100: Be realistic but encouraging. 85+ is interview-ready, 70-85 is good but has gaps, <70 has significant technical gaps.
+    - SCORE CALCULATION (most important — DO NOT use a placeholder value):
+        * You MUST calculate the "score" integer yourself by evaluating the actual resume text provided below.
+        * Count matching vs. missing technical keywords, assess bullet point quality, check for quantified achievements.
+        * Score range: 0-100. 85+ = interview-ready, 70-84 = good but has gaps, 50-69 = needs work, <50 = significant technical gaps.
+        * NEVER use 74, 75, or any hardcoded number — compute a unique, accurate score for THIS specific resume.
     - STAR Bullet Improvements: Identify 3 bullet points in the resume that are weak, passive, or lack impact. Rewrite them using the STAR (Situation, Task, Action, Result) methodology. Provide the original, the improved version, and a brief 1-sentence rationale explaining why it is better.
     - Gaps & Missing Skills: Highlight 4-6 specific technical skills (languages, frameworks, architectures, databases, or patterns) that are expected for a "{target_role}" but are missing or underrepresented in their current resume.
-      CRITICAL: Provide a highly detailed, rich, and constructive explanation of the gap and why it is critical for a "{target_role}" candidate (e.g., "Missing relational database optimization keywords - modern backends require robust indexing, query optimization, and schema normalization to handle scale").
-    - Strengths: Highlight 3 specific strong engineering achievements or positive traits present in the resume.
-      CRITICAL: Write each strength as a short, active phrase (8-15 words max, e.g. "Excellent database query structure and relational schema design").
-    - Recommended Skill Fillers: Provide 2-3 gentle, non-mandatory, specific project suggestions or study focus areas they could build to naturally fill these gaps. Do NOT force or coerce them to build it, keep the language encouraging and professional.
+      CRITICAL: Provide a highly detailed, rich, and constructive explanation of the gap and why it is critical for a "{target_role}" candidate.
+    - Strengths: Highlight 3 specific strong engineering achievements or positive traits ACTUALLY PRESENT in the resume.
+      CRITICAL: Write each strength as a short, active phrase (8-15 words max). Do NOT invent strengths not found in the resume.
+    - Recommended Skill Fillers: Provide 2-3 gentle, non-mandatory, specific project suggestions or study focus areas they could build to naturally fill these gaps.
     
     Resume Text:
+    ---START RESUME---
     {resume_text}
+    ---END RESUME---
     
-    Return ONLY valid JSON with this exact structure:
+    Return ONLY valid JSON with this exact structure (replace ALL placeholder values with real computed data):
     {{
-        "score": 74,
+        "score": <COMPUTE A REAL INTEGER 0-100 BASED ON THE RESUME ABOVE>,
         "role": "{target_role}",
         "summary": "A concise, high-impact 2-3 sentence paragraph (around 45-60 words) summarizing candidate alignment and key focus areas.",
         "strengths": [
-            "Strength 1 with short context (8-15 words)",
-            "Strength 2 with short context (8-15 words)",
-            "Strength 3 with short context (8-15 words)"
+            "Real strength 1 found in resume (8-15 words)",
+            "Real strength 2 found in resume (8-15 words)",
+            "Real strength 3 found in resume (8-15 words)"
         ],
         "gaps": [
-            "Detailed missing keyword gap 1 with actionable explanation (e.g. Missing relational database optimization keywords - modern backends require indexing and query tuning experience)",
+            "Detailed missing keyword gap 1 with actionable explanation",
             "Detailed missing keyword gap 2 with actionable explanation",
             "Detailed missing keyword gap 3 with actionable explanation"
         ],
         "bullet_improvements": [
             {{
-                "original": "Worked on backend server tasks.",
-                "improved": "Engineered asynchronous FastAPI backend routes and normalized MySQL schemas, reducing server response times by 35%.",
-                "rationale": "Replaced passive phrasing with active technical verbs and quantified the impact with a measurable metric."
+                "original": "An actual weak bullet from the resume above.",
+                "improved": "Rewritten STAR-method version with active verbs and quantified results.",
+                "rationale": "One sentence explaining what was improved and why."
             }}
         ],
         "suggested_projects": [
             {{
-                "title": "Project Title suggestion",
-                "description": "Short 1-2 sentence description of a project that covers missing skills.",
+                "title": "Specific project title",
+                "description": "Short 1-2 sentence description targeting the missing skills.",
                 "tech_stack": ["Tech1", "Tech2"]
             }}
         ]
     }}
-    Ensure the JSON is strictly valid. Do not include any other text or markdown formatting outside of the JSON block.
+    IMPORTANT: The "score" field MUST be a real integer you calculated, NOT a template placeholder. Ensure the JSON is strictly valid.
     """
 
     raw = _call_groq(prompt, json_mode=True)

@@ -124,8 +124,11 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 @app.on_event("startup")
 async def on_startup():
     # 1. Initialize / heal the database schema
+    # Run in a thread executor so it doesn't block the async event loop
+    # (Important for slow Supabase cold-start connections)
     try:
-        heal_database()
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, heal_database)
     except Exception as e:
         print(f"\033[91m[STARTUP ERROR] Database init failed: {e}\033[0m")
         print("\033[93m[WARNING] App is running but DB may not be ready. Check DATABASE_URL env var.\033[0m")
@@ -296,6 +299,25 @@ async def reset_password(request: schemas.ResetPasswordRequest, db: Session = De
 
 
 
+
+# Health check endpoint — useful for diagnosing Supabase free-tier pauses
+@app.get("/health")
+async def health_check(db: Session = Depends(get_db)):
+    try:
+        from sqlalchemy import text
+        db.execute(text("SELECT 1"))
+        user_count = db.execute(text("SELECT COUNT(*) FROM users")).scalar()
+        return {
+            "status": "ok",
+            "database": "connected",
+            "users_in_db": user_count
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "database": "disconnected",
+            "detail": str(e)
+        }
 
 # 2. Main API
 app.include_router(api_router, prefix="/api")

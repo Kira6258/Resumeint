@@ -47,8 +47,15 @@ Base = declarative_base()
 def get_db():
     db = SessionLocal()
     try:
+        # Verify the connection is alive (handles Supabase cold-start pauses)
+        from sqlalchemy import text as sa_text
+        try:
+            db.execute(sa_text("SELECT 1"))
+        except Exception:
+            # Connection was stale — close and open a fresh one
+            db.close()
+            db = SessionLocal()
         yield db
     finally:
         db.close()
-
 
