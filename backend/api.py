@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, BackgroundTasks, Response
+from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, BackgroundTasks, Response, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List
@@ -12,7 +12,7 @@ import schemas
 import auth
 import ai_service
 from pydantic import BaseModel
-from main import limiter
+from limiter import limiter
 
 router = APIRouter()
 

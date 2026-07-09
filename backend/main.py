@@ -21,9 +21,9 @@ from datetime import datetime, timedelta
 import secrets
 import httpx
 import asyncio
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from limiter import limiter
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -113,8 +113,7 @@ def heal_database():
     print("\033[92m[OK] Database schema verified.\033[0m")
 
 
-# Rate limiter — keyed by client IP address
-limiter = Limiter(key_func=get_remote_address)
+# Rate limiter — keyed by client IP address (imported from limiter.py)
 
 app = FastAPI(title="Resumeint API")
 app.state.limiter = limiter
