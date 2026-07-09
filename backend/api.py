@@ -597,6 +597,12 @@ async def analyze_resume(
     # --- 7. AI Analysis ---
     analysis = await ai_service.analyze_resume_ats(clean_text, target_role)
 
+    if "not_resume" in analysis:
+        raise HTTPException(
+            status_code=400,
+            detail="The uploaded document doesn't appear to be a resume or CV. Our AI confirmed it does not contain resume content (work experience, education, skills). Please upload your actual resume."
+        )
+
     if "error" in analysis:
         raise HTTPException(status_code=500, detail=analysis["error"])
 

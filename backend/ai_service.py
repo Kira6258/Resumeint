@@ -329,6 +329,25 @@ async def analyze_resume_ats(resume_text: str, target_role: str) -> Dict[str, An
     if not api_key or api_key == "NOT_SET" or api_key == "gsk_your_groq_api_key_here":
         return {"error": "Groq API Key is missing. Please update your .env file."}
 
+    # --- Pre-flight: Ask AI to confirm this is actually a resume ---
+    preflight_prompt = f"""You are a strict document classifier. Your ONLY job: is the text below a resume or CV?
+
+A resume/CV has: a person's name, contact info, work experience or projects, education, skills sections.
+NOT a resume: essays, stories, articles, code files, invoices, assignments, letters, random text.
+
+Respond ONLY with valid JSON, nothing else:
+{{"is_resume": true}} — if it IS a resume/CV
+{{"is_resume": false}} — if it is NOT a resume/CV
+
+Document (first 1500 chars):
+{resume_text[:1500]}"""
+
+    preflight_raw = _call_groq(preflight_prompt, json_mode=True)
+    if preflight_raw:
+        preflight = _parse_json(preflight_raw)
+        if preflight and preflight.get("is_resume") is False:
+            return {"not_resume": True}
+
     prompt = f"""You are an elite, senior technical recruiter and ATS (Applicant Tracking System) specialist.
     
     Evaluate the following candidate's resume content against the target job role: "{target_role}".
