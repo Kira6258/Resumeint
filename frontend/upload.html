@@ -232,7 +232,10 @@
                     </div>
                     <div class="idea-card-body">
                         <h3 class="idea-title">${idea.title}</h3>
-                        <p class="idea-desc">${idea.description}</p>
+                        <p class="idea-desc" id="desc-${index}" style="-webkit-line-clamp: 3;">${idea.description}</p>
+                        <button class="desc-toggle-btn" id="desc-btn-${index}" onclick="toggleDesc(${index})">
+                            👁️ Show full description
+                        </button>
                     </div>
                     <div class="idea-card-footer">
                         <div class="tech-stack-preview">${techPills}</div>
@@ -245,6 +248,22 @@
             }).join('');
             document.getElementById('step-2').style.display = 'none';
             document.getElementById('step-3').style.display = 'block';
+        }
+
+        function toggleDesc(index) {
+            const desc = document.getElementById(`desc-${index}`);
+            const btn = document.getElementById(`desc-btn-${index}`);
+            if (!desc || !btn) return;
+            const isExpanded = desc.style.webkitLineClamp === 'unset';
+            if (isExpanded) {
+                desc.style.webkitLineClamp = '3';
+                desc.style.overflow = 'hidden';
+                btn.textContent = '👁️ Show full description';
+            } else {
+                desc.style.webkitLineClamp = 'unset';
+                desc.style.overflow = 'visible';
+                btn.textContent = '⌃ Show less';
+            }
         }
 
         function renderSkeleton() {
@@ -491,11 +510,31 @@
         font-size: 0.95rem;
         line-height: 1.6;
         color: var(--text-secondary);
-        margin: 0;
+        margin: 0 0 var(--space-12) 0;
         display: -webkit-box;
-        -webkit-line-clamp: 4;
+        -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .desc-toggle-btn {
+        background: none;
+        border: none;
+        color: var(--accent-gold);
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0;
+        margin-bottom: var(--space-8);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        opacity: 0.85;
+        transition: opacity 0.2s;
+    }
+    .desc-toggle-btn:hover {
+        opacity: 1;
     }
 
     .idea-card-footer {

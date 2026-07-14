@@ -357,6 +357,8 @@
             const chatContainer = document.getElementById('chat-history-container');
             if (!inputField || !sendBtn || !inputField.value.trim()) return;
 
+            // Declare outside try so finally can always access it
+            let fullResponseText = '';
             const text = inputField.value.trim();
             inputField.value = '';
 
@@ -399,7 +401,7 @@
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder();
                 let partialLine = '';
-                let fullResponseText = '';
+                // fullResponseText already declared above
 
                 while (true) {
                     const { done, value } = await reader.read();
@@ -463,7 +465,9 @@
                 showToast("Connection Lost", "Failed to get response from Interviewer. Try again.", "error");
                 appendMessageBubble('assistant', "⚠️ Engine Timeout. The connection was lost. Please repeat your answer or try again.");
             } finally {
-                if (userStrikes < 3 && !fullResponseText.includes('[TERMINATED]') && !fullResponseText.includes('[PASSED]')) {
+                // Only re-enable input if interview is still active (< 3 strikes and not ended)
+                const interviewEnded = fullResponseText.includes('[TERMINATED]') || fullResponseText.includes('[PASSED]');
+                if (userStrikes < 3 && !interviewEnded) {
                     inputField.disabled = false;
                     sendBtn.disabled = false;
                     inputField.focus();

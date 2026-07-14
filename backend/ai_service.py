@@ -175,6 +175,13 @@ Original Syllabus:
 
 Generate a detailed {duration_weeks}-week implementation roadmap for this project.
 
+IMPORTANT MILESTONE RULES:
+- Each milestone MUST be a clear, explanatory sentence of 30 to 40 words.
+- Do NOT write milestones as short commands like "Set up database" or "Build UI".
+- Instead, explain WHAT to build, WHY it matters, and HOW to approach it briefly.
+- Example of BAD milestone: "Create user authentication"
+- Example of GOOD milestone: "Implement a secure user authentication system using JWT tokens, including registration, login, and session expiry — this forms the security backbone that all protected routes will rely on."
+
 Return ONLY valid JSON (no markdown, no code fences) with this exact structure:
 {{
     "project_title": "{chosen_project.get('title', 'Untitled')}",
@@ -184,7 +191,7 @@ Return ONLY valid JSON (no markdown, no code fences) with this exact structure:
         {{
             "week": 1,
             "goal": "Goal for week 1",
-            "milestones": ["milestone 1", "milestone 2"],
+            "milestones": ["30-40 word milestone description 1", "30-40 word milestone description 2"],
             "deliverable": "Deliverable for week 1",
             "hints": ["Hint 1"]
         }}
@@ -198,8 +205,11 @@ Return ONLY valid JSON (no markdown, no code fences) with this exact structure:
     "mysql_schema": "CREATE TABLE example (\\n  id INT PRIMARY KEY AUTO_INCREMENT,\\n  name VARCHAR(255) NOT NULL\\n);"
 }}
 
-Make the milestones specific and actionable. Each hint should help the student get started on that week's work.
-If this project does not require a database (like a static HTML site), set "mysql_schema" to an empty string ""."""
+Make the milestones specific and actionable, 30-40 words each. Each hint should help the student get started on that week's work.
+MYSQL SCHEMA RULES (CRITICAL):
+- If the project involves ANY of: user accounts, login/auth, data storage, API, backend, admin panel, dashboard — you MUST generate a full, multi-table MySQL schema.
+- Only set "mysql_schema" to an empty string "" if the project is a purely static HTML/CSS/JS site with NO backend and NO data persistence whatsoever.
+- When in doubt, generate a schema. A backend project without a schema is incomplete."""
 
     raw = _call_groq(prompt, json_mode=True)
     if raw is None:
@@ -227,6 +237,13 @@ Syllabus Content:
 
 Generate a structured {duration_weeks}-week project plan.
 
+IMPORTANT MILESTONE RULES:
+- Each milestone MUST be a clear, explanatory sentence of 30 to 40 words.
+- Do NOT write milestones as short commands like "Set up database" or "Build UI".
+- Instead, explain WHAT to build, WHY it matters, and HOW to approach it briefly.
+- Example of BAD milestone: "Create user authentication"
+- Example of GOOD milestone: "Implement a secure user authentication system using JWT tokens, including registration, login, and session expiry — this forms the security backbone that all protected routes will rely on."
+
 Return ONLY valid JSON (no markdown, no code fences) with this exact structure:
 {{
     "project_title": "A descriptive project title",
@@ -236,7 +253,7 @@ Return ONLY valid JSON (no markdown, no code fences) with this exact structure:
         {{
             "week": 1,
             "goal": "Goal for week 1",
-            "milestones": ["milestone 1"],
+            "milestones": ["30-40 word milestone description 1"],
             "deliverable": "Deliverable for week 1",
             "hints": ["Hint 1"]
         }}
