@@ -7,11 +7,11 @@ from docx import Document
 import io
 
 # Model priority list — tries each in order until one succeeds
-# Updated Aug 2026: older Llama 3.x and Mixtral IDs were decommissioned by Groq.
+# Confirmed live via GET /v1/models on 2026-08-18. Only these chat models are active on this account.
 MODELS_TO_TRY = [
-    "meta-llama/llama-4-maverick-17b-128e-instruct",  # Best quality, multimodal
-    "meta-llama/llama-4-scout-17b-16e-instruct",       # Fast & capable
-    "llama-3.3-70b-versatile",                          # Fallback (if re-enabled)
+    "openai/gpt-oss-120b",   # Highest quality available
+    "openai/gpt-oss-20b",    # Fast fallback
+    "qwen/qwen3.6-27b",      # Third fallback
 ]
 
 
