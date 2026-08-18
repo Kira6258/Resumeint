@@ -35,10 +35,10 @@ def _call_groq(prompt: str, json_mode: bool = False) -> Optional[str]:
                 kwargs = {
                     "messages": [{"role": "user", "content": prompt}],
                     "model": model_name,
+                    "max_tokens": 4096,
                 }
-                if json_mode:
-                    kwargs["response_format"] = {"type": "json_object"}
-                
+                # NOTE: response_format json_object is NOT set — current models don't support it.
+                # Prompts explicitly request JSON output; _parse_json() handles extraction.
                 response = client.chat.completions.create(**kwargs)
                 text = response.choices[0].message.content.strip()
                 print(f"\033[92m[AI] SUCCESS via SDK: {model_name}\033[0m")
@@ -58,10 +58,10 @@ def _call_groq(prompt: str, json_mode: bool = False) -> Optional[str]:
         }
         payload = {
             "model": model_name,
-            "messages": [{"role": "user", "content": prompt}]
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 4096,
         }
-        if json_mode:
-            payload["response_format"] = {"type": "json_object"}
+        # NOTE: response_format json_object omitted — current models don't support it.
         try:
             print(f"\033[90m[AI] Trying REST: {model_name}...\033[0m")
             response = requests.post(url, headers=headers, json=payload, timeout=60)
