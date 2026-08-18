@@ -7,10 +7,11 @@ from docx import Document
 import io
 
 # Model priority list — tries each in order until one succeeds
+# Updated Aug 2026: older Llama 3.x and Mixtral IDs were decommissioned by Groq.
 MODELS_TO_TRY = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768",
+    "meta-llama/llama-4-maverick-17b-128e-instruct",  # Best quality, multimodal
+    "meta-llama/llama-4-scout-17b-16e-instruct",       # Fast & capable
+    "llama-3.3-70b-versatile",                          # Fallback (if re-enabled)
 ]
 
 
